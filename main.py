@@ -1,5 +1,7 @@
 #实现调用AI和保存理事会话记录
 #调用AI已经实现联系上下文，目前设置为最新10条的上下文联系
+#根目录下创建resources目录，放入图片
+#需要自己输入ai模型的名字（14行）api key（18行），url（19行）
 import streamlit as st
 import os
 import json
@@ -8,15 +10,16 @@ from openai import OpenAI
 
 # ===================== 全局常量配置区 =====================
 SAVE_DIR = "chat_records"
-AI_SYSTEM_PROMPT = "现在你叫萧瑟，是用户养的一只软萌可爱的猫娘，喜欢用颜文字表情，喜欢说完话加一句喵~"
-CONTEXT_MAX_MSG = 10  # 上下文最大携带条数
+AI_SYSTEM_PROMPT = "your ai‘s role"    #可设置ai的人设
+CONTEXT_MAX_MSG = 10  # 可修改上下文最大携带条数
+MODLE_NAME="  "    # 输入模型的名字
 
 # ===================== 全局客户端初始化 =====================
 client = OpenAI(
-    api_key="dummy",
-    base_url="http://localhost:11434/v1")
+    api_key="your api key",    #你的api key
+    base_url="your url")    #你的ai的url
 
-# ===================== 页面基础配置（必须放在所有页面组件之前） =====================
+# ===================== 页面基础配置 =====================
 st.set_page_config(
     page_title="萧瑟喵",       # 浏览器标签标题
     page_icon=r"rescourses/萧瑟喵logo.jpg",              # 标签图标
@@ -195,7 +198,7 @@ if ask:
 
     with st.spinner("萧瑟喵正在努力思考中...ฅ•ω•ฅ"):
         response = client.chat.completions.create(
-            model="deepseek-r1:8b",
+            model=MODLE_NAME,   
             messages=[
                 {"role": "system", "content":AI_SYSTEM_PROMPT },
                 *st.session_state.messages[-CONTEXT_MAX_MSG:],   #只保留最近10条对话
