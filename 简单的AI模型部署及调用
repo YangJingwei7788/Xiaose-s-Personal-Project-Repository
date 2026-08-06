@@ -1,0 +1,2 @@
+2026年7月28日至29日，基于ollama，pycharm，本地部署deepseek-r1：8b的本地部署，并且完成了简单的AI调动代码。基于steamlit库实现了网页简单调用。
+环境：windows11，python3.13
