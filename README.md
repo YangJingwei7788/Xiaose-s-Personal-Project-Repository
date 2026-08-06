@@ -6,7 +6,7 @@
 	环境：pycharm2025.2.4 python3.13  
 	软件包：streamlit、openai  
 	插件：CodeGeeX (AI 辅助开发工具插件)  
-	测试所用AI 模型：deepseek-r1:8b
+	测试所用AI 模型：deepseek-r1:8b  
 	参考：黑马程序员 Python+AI 零基础入门到大神全套视频课程，豆包，deepseek 网页版•    
 02.设计思路  
 	模型部署：使用 Ollama 在本地完成 deepseek-r1:8b 大模型部署，提供本地 API 推理服务。    
