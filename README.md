@@ -1,8 +1,8 @@
-# 萧瑟喵AI工作台
+# 萧瑟喵AI工作台（codex+deepseek辅助开发）
 
 基于 **FastAPI + SQLAlchemy（异步）** 构建的轻量 AI 对话全栈应用，支持多用户、流式对话、会话角色设定、收藏与历史，并可自由接入多种大模型来源（公共 API / 本地大模型 / DeepSeek）。原生 HTML/CSS/JS 前端，已做移动端适配。
 
-## ✨ 功能介绍
+##  功能介绍
 
 ### 1. 账号体系
 - **注册 / 登录弹窗**：进入即可先体验（游客模式），需要使用时右上角点「登录」弹出登录/注册窗口，注册后自动切换到登录。
@@ -33,7 +33,7 @@
 ### 5. 移动端适配
 - 屏幕宽度 ≤768px 自动切换为「列表屏 / 聊天屏」两屏布局，弹窗、设置页、用户页均有手机端适配。
 
-## 🛠 技术栈
+## 🛠技术栈
 
 - 后端框架：FastAPI + Uvicorn
 - 数据库：MySQL 8（异步驱动 aiomysql）
@@ -43,7 +43,7 @@
 - AI 调用：Ollama `/api/chat`（NDJSON 流式）与 DeepSeek OpenAI 兼容接口（SSE 流式）
 - 前端：原生 HTML/CSS/JS（无构建步骤）
 
-## 🚀 快速开始
+##  快速开始
 
 ### 1. 环境要求
 - Python ≥ 3.11
@@ -90,7 +90,7 @@ uv run uvicorn xiaosemiao_ai.main:app --reload --port 8000
 uv run pytest
 ```
 
-## 📡 API 一览
+##  API 一览
 
 统一响应格式：`{ "code": 0, "message": "success", "data": ... }`；鉴权请求头：`Authorization: <token>`。
 
@@ -122,7 +122,7 @@ uv run pytest
 ### 收藏 `/api/favorite` 与历史 `/api/history`
 支持 add / list / remove / clear / check（收藏）等接口，列表返回 `ChatListItem`（id 即会话 ID，可复用重命名/删除）。
 
-## 📁 项目结构
+##  项目结构
 
 ```
 xiaosemiao_ai/
@@ -138,7 +138,7 @@ scripts/init_db.sql   # 建库 SQL
 tests/                # pytest（SQLite 内存库 + 假模型流）
 ```
 
-## ❓ 常见问题
+##  常见问题
 
 - **启动报数据库连接失败**：确认 MySQL 已启动、已执行 `scripts/init_db.sql`、`.env` 连接串正确。
 - **对话没反应 / 模型调用失败**：确认你选择的来源可用——公共 API 需服务器 Ollama 已启动并拉取了 `OLLAMA_MODEL`；本地大模型需地址可达；DeepSeek 需有效 API Key。
