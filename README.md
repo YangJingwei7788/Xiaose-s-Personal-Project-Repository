@@ -1,4 +1,4 @@
-# 二手家具回收售卖展示系统（极简品类展示版 · 可打包 EXE）
+# 家具回收售卖展示系统（极简品类展示版 · 可打包 EXE）
 
 面向门店/毕设场景的极简业务展示系统：**仅展示可回收/可售卖的物品种类、业务范围、服务介绍，并支持客户在线预约咨询**，无商品详情、价格、库存等冗余功能。
 
@@ -61,14 +61,6 @@ python main.py
 
 启动后自动打开浏览器（默认进入商家后台）；如需指定端口：`python main.py --port 9000`；不自动打开浏览器：`python main.py --no-browser`。
 
-## 打包 EXE
-
-```bash
-pip install pyinstaller
-pyinstaller -F -n 二手家具业务展示系统 --add-data "static;static" main.py
-```
-
-打包产物在 `dist/二手家具业务展示系统.exe`，双击即可运行。
 
 ## 使用说明
 
