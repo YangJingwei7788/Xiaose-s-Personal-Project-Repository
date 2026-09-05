@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>设置 - 萧瑟喵AI</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f5f6fa; color: #2f3542; }
+  header { display: flex; align-items: center; padding: 12px 12px; background: #57606f; color: #fff;
+           position: sticky; top: 0; z-index: 50; }
+  header .back { background: transparent; color: #fff; border: none; font-size: 22px; line-height: 1;
+                 padding: 4px 10px; border-radius: 6px; cursor: pointer; }
+  header .back:active { background: rgba(255,255,255,.2); }
+  header h1 { flex: 1; text-align: center; font-size: 17px; margin-right: 44px; }
+  .layout { display: flex; max-width: 860px; margin: 0 auto; min-height: calc(100vh - 50px); }
+  nav { width: 200px; background: #fff; border-right: 1px solid #dfe4ea; padding: 16px 10px; flex: none; }
+  nav .nav-item { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-radius: 8px;
+                  font-size: 15px; color: #57606f; cursor: pointer; margin-bottom: 4px; }
+  nav .nav-item.active { background: #1e90ff; color: #fff; font-weight: bold; }
+  nav .nav-item.disabled { color: #a4b0be; cursor: default; }
+  nav .nav-more { font-size: 12px; color: #a4b0be; padding: 8px 14px; }
+  main { flex: 1; padding: 20px 16px; }
+  .card { background: #fff; border-radius: 12px; padding: 20px 16px; max-width: 560px; }
+  .card h2 { font-size: 16px; margin-bottom: 4px; }
+  .card .desc { font-size: 12px; color: #a4b0be; margin-bottom: 14px; line-height: 1.6; }
+  label { display: block; font-size: 13px; color: #57606f; margin: 12px 0 4px; }
+  input, select { width: 100%; padding: 11px 10px; border: 1px solid #dfe4ea; border-radius: 8px;
+                  font-size: 16px; font-family: inherit; background: #fff; color: #2f3542; }
+  input:disabled { background: #f1f2f6; color: #a4b0be; }
+  .hint { font-size: 12px; color: #a4b0be; margin-top: 6px; line-height: 1.5; }
+  button { cursor: pointer; border: none; border-radius: 8px; padding: 11px 14px; font-size: 15px; }
+  .primary { background: #1e90ff; color: #fff; }
+  .btn-block { width: 100%; margin-top: 16px; }
+  .primary:active { background: #1289d9; }
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center;
+             justify-content: center; z-index: 100; }
+  .confirm-card { width: 320px; max-width: calc(100% - 32px); background: #fff; border-radius: 12px;
+                  padding: 24px 20px; }
+  .confirm-card h2 { text-align: center; margin-bottom: 10px; }
+  .confirm-card p { font-size: 13px; color: #57606f; line-height: 1.6; margin-bottom: 18px; }
+  .row { display: flex; gap: 10px; }
+  .row button { flex: 1; }
+  .ghost-dark { background: #f1f2f6; color: #57606f; }
+  .ghost-dark:active { background: #dfe4ea; }
+  #toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.78);
+           color: #fff; padding: 10px 20px; border-radius: 8px; display: none; z-index: 999; font-size: 14px;
+           max-width: 80vw; }
+  .field-group { display: none; }
+  .field-group.show { display: block; }
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    nav { width: 100%; border-right: none; border-bottom: 1px solid #dfe4ea; padding: 8px 10px;
+          display: flex; gap: 8px; overflow-x: auto; }
+    nav .nav-item { flex: none; margin-bottom: 0; white-space: nowrap; }
+    nav .nav-more { display: none; }
+    main { padding: 14px 12px; }
+    .card { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<header>
+  <button class="back" id="back-btn" title="返回">&#8592;</button>
+  <h1>设置</h1>
+</header>
+
+<div class="layout">
+  <nav>
+    <div class="nav-item active" data-nav="api">&#9881; API设置</div>
+    <div class="nav-more">更多设置功能即将上线</div>
+  </nav>
+
+  <main>
+    <div class="card" id="page-api">
+      <h2>API设置</h2>
+      <div class="desc">选择你要接入的大模型来源，保存后发送问题时默认使用该配置；也可在输入框右侧「+」中随时切换。</div>
+
+      <label>接入方式</label>
+      <select id="llm-provider">
+        <option value="public">公共API（服务器 Ollama）</option>
+        <option value="local">本地大模型</option>
+        <option value="deepseek">DeepSeek 大模型</option>
+      </select>
+
+      <div class="field-group" id="fg-public">
+        <div class="hint">使用服务器配置的公共 Ollama（默认模型：<span id="public-model-name"></span>）。所有用户都可以选择这一项，无需额外配置。</div>
+      </div>
+
+      <div class="field-group" id="fg-local">
+        <label>本地服务地址</label>
+        <input id="llm-base-url" placeholder="例如 http://localhost:11434 或 http://192.168.1.10:11434">
+        <div class="hint">填写你本地或局域网内 Ollama 服务的地址。启用后，会话将直接调用该地址，不再经过服务器公共 API。</div>
+        <label>模型名称（可选）</label>
+        <input id="llm-model-local" placeholder="例如 qwen2.5:7b，留空则使用默认">
+      </div>
+
+      <div class="field-group" id="fg-deepseek">
+        <label>API Key</label>
+        <input id="llm-api-key" type="password" placeholder="sk-..." autocomplete="off">
+        <div class="hint" id="deepseek-key-state"></div>
+        <label>模型</label>
+        <select id="llm-model-ds">
+          <option value="deepseek-v4-pro">deepseek-v4-pro（V4 Pro · 深度推理）</option>
+          <option value="deepseek-v4-flash" selected>deepseek-v4-flash（V4 Flash · 快速经济）</option>
+        </select>
+      </div>
+
+      <button class="primary btn-block" id="save-btn">保存设置</button>
+    </div>
+  </main>
+</div>
+
+<!-- DeepSeek API 保存确认弹窗 -->
+<div id="save-mask" class="overlay">
+  <div class="confirm-card">
+    <h2>是否保存 API Key？</h2>
+    <p>保存后 API Key 将存入你的账号数据库，之后可在任意设备使用；<br>选择「暂不保存」则仅当前浏览器本次有效。</p>
+    <div class="row">
+      <button class="primary" id="save-yes-btn">保存</button>
+      <button class="ghost-dark" id="save-no-btn">暂不保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var token = localStorage.getItem("token") || "";
+var llmCfg = null;
+var pendingSave = null; // { provider, base_url, api_key, model }
+
+function $(id) { return document.getElementById(id); }
+
+function toast(msg) {
+  var t = $("toast");
+  t.textContent = msg;
+  t.style.display = "block";
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(function () { t.style.display = "none"; }, 2200);
+}
+
+function api(path, options) {
+  options = options || {};
+  options.headers = options.headers || {};
+  options.headers["Content-Type"] = "application/json";
+  if (token) { options.headers["Authorization"] = token; }
+  return fetch(path, options).then(function (resp) {
+    return resp.json().catch(function () { return { code: -1, message: "响应解析失败" }; });
+  });
+}
+
+function updateDsKeyState() {
+  var el = $("deepseek-key-state");
+  if (!el) { return; }
+  if (llmCfg && llmCfg.llm_has_api_key) {
+    el.textContent = "已保存 API Key（重新输入可覆盖）";
+  } else if (sessionStorage.getItem("llm_api_key_temp")) {
+    el.textContent = "当前浏览器会话有效（未保存到账号，重新登录后失效）";
+  } else {
+    el.textContent = "尚未保存 API Key";
+  }
+}
+
+$("back-btn").addEventListener("click", function () { location.href = "/"; });
+
+if (!token) { location.href = "/"; }
+
+// 接入方式切换
+function applyProviderUI() {
+  var p = $("llm-provider").value;
+  $("fg-public").classList.toggle("show", p === "public");
+  $("fg-local").classList.toggle("show", p === "local");
+  $("fg-deepseek").classList.toggle("show", p === "deepseek");
+  if (p === "public" && llmCfg) { $("public-model-name").textContent = llmCfg.server_default_model || "服务器默认"; }
+}
+$("llm-provider").addEventListener("change", applyProviderUI);
+
+// 加载已保存的设置
+api("/api/user/settings/llm").then(function (resp) {
+  if (resp.code !== 0) {
+    if (resp.code === 401) { localStorage.removeItem("token"); location.href = "/"; return; }
+    toast(resp.message); return;
+  }
+  llmCfg = resp.data;
+  var p = llmCfg.llm_provider || "public";
+  $("llm-provider").value = p;
+  if (llmCfg.llm_base_url) { $("llm-base-url").value = llmCfg.llm_base_url; }
+  if (llmCfg.llm_model) {
+    if (p === "deepseek") { $("llm-model-ds").value = llmCfg.llm_model; }
+    else { $("llm-model-local").value = llmCfg.llm_model; }
+  }
+  updateDsKeyState();
+  applyProviderUI();
+});
+
+// 保存
+$("save-btn").addEventListener("click", function () {
+  var provider = $("llm-provider").value;
+  var payload = { llm_provider: provider };
+  if (provider === "local") {
+    payload.llm_base_url = $("llm-base-url").value.trim();
+    payload.llm_model = $("llm-model-local").value.trim() || null;
+    if (!payload.llm_base_url) { toast("请填写本地服务地址"); return; }
+    doSave(payload);
+  } else if (provider === "deepseek") {
+    var key = $("llm-api-key").value.trim();
+    payload.llm_model = $("llm-model-ds").value;
+    if (!key) {
+      // 未输入新 key：仅保存其他配置，保留原 key
+      doSave(payload);
+      return;
+    }
+    // 弹出是否保存 API 的确认
+    pendingSave = payload;
+    pendingSave.api_key = key;
+    $("save-mask").style.display = "flex";
+  } else {
+    doSave(payload);
+  }
+});
+
+function doSave(payload) {
+  return api("/api/user/settings/llm", { method: "PUT", body: JSON.stringify(payload) }).then(function (resp) {
+    if (resp.code !== 0) { toast(resp.message); return; }
+    llmCfg = resp.data;
+    if (llmCfg.llm_provider === "deepseek") { updateDsKeyState(); }
+    applyProviderUI();
+    toast("设置已保存");
+  });
+}
+
+// 保存 API 弹窗
+$("save-yes-btn").addEventListener("click", function () {
+  $("save-mask").style.display = "none";
+  var p = pendingSave; pendingSave = null;
+  if (!p) { return; }
+  sessionStorage.removeItem("llm_api_key_temp");
+  doSave(p); // 包含 api_key -> 存入数据库
+});
+
+$("save-no-btn").addEventListener("click", function () {
+  $("save-mask").style.display = "none";
+  var p = pendingSave; pendingSave = null;
+  if (!p) { return; }
+  // 不保存到账号：key 存 localStorage，本次浏览器有效
+  sessionStorage.setItem("llm_api_key_temp", p.api_key);
+  var payload = { llm_provider: p.llm_provider, llm_model: p.llm_model };
+  doSave(payload); // 不带 api_key -> 不覆盖数据库里的 key
+  toast("API Key 未保存，仅当前浏览器本次有效");
+});
+
+$("save-mask").addEventListener("click", function (e) { if (e.target === this) { $("save-mask").style.display = "none"; pendingSave = null; } });
+</script>
+</body>
+</html>

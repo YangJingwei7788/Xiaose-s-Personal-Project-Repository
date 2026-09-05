@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>萧瑟喵AI工作台</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f5f6fa; color: #2f3542; }
+  #app { display: flex; height: 100vh; flex-direction: column; }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px;
+           background: #57606f; color: #fff; }
+  header h1 { font-size: 18px; }
+  #user-bar { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; background: #1e90ff;
+            color: #fff; cursor: pointer; flex: none; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; display: none; }
+  .avatar span { display: none; align-items: center; justify-content: center; width: 100%; height: 100%;
+                 font-size: 16px; font-weight: bold; }
+  button { cursor: pointer; border: none; border-radius: 6px; padding: 6px 14px; font-size: 14px; }
+  button.primary { background: #1e90ff; color: #fff; }
+  button.danger { background: #ff4757; color: #fff; }
+  button.ghost { background: transparent; color: #fff; border: 1px solid #fff; }
+  button.ghost-dark { background: #f1f2f6; color: #57606f; }
+  button.ghost-dark:hover { background: #dfe4ea; }
+  button:disabled { opacity: .6; cursor: not-allowed; }
+  main { flex: 1; display: flex; overflow: hidden; }
+  aside { width: 280px; background: #fff; border-right: 1px solid #dfe4ea; display: flex; flex-direction: column; }
+  #new-chat { margin: 12px; background: #1e90ff; color: #fff; }
+  #tabs { display: flex; padding: 0 12px; gap: 6px; }
+  #tabs button { flex: 1; background: #f1f2f6; color: #57606f; }
+  #tabs button.active { background: #1e90ff; color: #fff; }
+  #list-toolbar { padding: 8px 12px 4px; }
+  #clear-btn { width: 100%; background: #f1f2f6; color: #57606f; font-size: 13px; }
+  #clear-btn:hover { background: #ff4757; color: #fff; }
+  #side-list { flex: 1; overflow-y: auto; padding: 8px; list-style: none; }
+  #side-list li { display: flex; align-items: center; padding: 10px; border-radius: 6px; cursor: pointer;
+                  border-bottom: 1px solid #f1f2f6; }
+  #side-list li:hover { background: #f1f2f6; }
+  #side-list li.empty { display: block; text-align: center; color: #a4b0be; cursor: default; }
+  .side-text { flex: 1; min-width: 0; }
+  .side-text .meta { font-size: 12px; color: #a4b0be; margin-top: 4px; }
+  .side-del { flex: none; background: transparent; color: #a4b0be; font-size: 18px; line-height: 1;
+              padding: 2px 8px; border-radius: 4px; }
+  .side-del:hover { background: #ff4757; color: #fff; }
+  .side-edit { flex: none; background: transparent; color: #a4b0be; font-size: 14px; line-height: 1;
+               padding: 2px 8px; border-radius: 4px; }
+  .side-edit:hover { background: #1e90ff; color: #fff; }
+  #chat-panel { flex: 1; display: flex; flex-direction: column; }
+  #chat-title { padding: 12px 20px; background: #fff; border-bottom: 1px solid #dfe4ea; display: flex;
+                align-items: center; justify-content: space-between; }
+  .title-wrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .title-wrap strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .back-btn { display: none; background: transparent; color: #57606f; font-size: 22px; line-height: 1;
+              padding: 2px 10px; border-radius: 4px; }
+  .back-btn:hover { background: #dfe4ea; }
+  .title-rename { background: transparent; color: #a4b0be; font-size: 15px; padding: 2px 8px; border-radius: 4px; }
+  .title-rename:hover { background: #1e90ff; color: #fff; }
+  .title-actions { display: flex; align-items: center; gap: 8px; position: relative; }
+  .title-role { background: transparent; color: #a4b0be; font-size: 17px; padding: 2px 8px; border-radius: 4px;
+                line-height: 1.2; }
+  .title-role:hover { background: #1e90ff; color: #fff; }
+  .title-role.active { color: #1e90ff; }
+  .role-menu { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border: 1px solid #dfe4ea;
+               border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,.12); min-width: 150px; padding: 4px; z-index: 70; }
+  .role-menu-item { padding: 10px 14px; font-size: 14px; color: #2f3542; cursor: pointer; border-radius: 6px; }
+  .role-menu-item:hover { background: #f1f2f6; color: #1e90ff; }
+  .user-menu { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border: 1px solid #dfe4ea;
+               border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,.12); min-width: 170px; padding: 4px; z-index: 70; }
+  .user-menu-item { padding: 10px 14px; font-size: 14px; color: #2f3542; cursor: pointer; border-radius: 6px;
+                    display: flex; align-items: center; gap: 8px; }
+  .user-menu-item:hover { background: #f1f2f6; color: #1e90ff; }
+  .user-menu-item .menu-icon { font-size: 15px; width: 18px; text-align: center; color: #a4b0be; }
+  #user-bar { position: relative; }
+  .input-actions { position: relative; display: flex; align-items: stretch; gap: 8px; }
+  .model-picker { position: relative; display: flex; align-items: stretch; gap: 6px; }
+  .model-preview-btn { background: #f1f2f6; color: #57606f; border-radius: 8px; padding: 0 12px;
+                       max-width: 170px; font-size: 13px; overflow: hidden; }
+  .model-preview-btn span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .model-preview-btn:hover { background: #dfe4ea; }
+  .ds-caret { width: 34px; background: #eef5ff; color: #1e90ff; border-radius: 8px; padding: 0;
+              font-size: 12px; line-height: 1; }
+  .ds-caret:hover { background: #1e90ff; color: #fff; }
+  .model-menu { position: absolute; bottom: calc(100% + 8px); right: 0; background: #fff; border: 1px solid #dfe4ea;
+                border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,.12); min-width: 240px; max-width: 80vw;
+                padding: 4px; z-index: 70; }
+  .model-menu-item { padding: 10px 12px; border-radius: 6px; cursor: pointer; }
+  .model-menu-item:hover { background: #f1f2f6; }
+  .model-menu-item.active { background: #eef5ff; }
+  .model-menu-item .model-name { font-size: 14px; color: #2f3542; font-weight: bold; }
+  .model-menu-item.active .model-name { color: #1e90ff; }
+  .model-menu-item .model-detail { font-size: 12px; color: #a4b0be; margin-top: 2px; word-break: break-all; }
+  .model-menu-item + .model-menu-item { border-top: 1px solid #f1f2f6; margin-top: 2px; padding-top: 8px; }
+  #ds-model-menu { min-width: 220px; }
+  .card textarea { width: 100%; padding: 10px; border: 1px solid #dfe4ea; border-radius: 8px; font-size: 14px;
+                   font-family: inherit; resize: vertical; min-height: 120px; margin-bottom: 12px; }
+  .role-tip { font-size: 12px; color: #a4b0be; margin-bottom: 12px; line-height: 1.5; }
+  #messages { flex: 1; overflow-y: auto; padding: 20px; }
+  .msg { max-width: 70%; margin-bottom: 14px; padding: 10px 14px; border-radius: 10px; line-height: 1.6;
+         white-space: pre-wrap; word-break: break-word; }
+  .msg.user { background: #1e90ff; color: #fff; margin-left: auto; width: fit-content; }
+  .msg.assistant { background: #fff; border: 1px solid #dfe4ea; }
+  .msg.error { background: #ffebee; color: #c0392b; border: 1px solid #f5c6cb; }
+  #input-row { display: flex; gap: 10px; padding: 14px 20px; background: #fff; border-top: 1px solid #dfe4ea; }
+  #message-input { flex: 1; resize: none; height: 56px; padding: 10px; border: 1px solid #dfe4ea;
+                   border-radius: 8px; font-size: 16px; font-family: inherit; }
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center;
+             justify-content: center; z-index: 100; }
+  #login-mask { align-items: center; justify-content: center; }
+  .card { width: 360px; background: #fff; border-radius: 12px; padding: 28px; }
+  .card h2 { text-align: center; margin-bottom: 18px; }
+  .card input { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #dfe4ea;
+                border-radius: 8px; font-size: 16px; }
+  .pwd-wrap { position: relative; }
+  .pwd-wrap input { padding-right: 44px; }
+  .pwd-eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+             background: transparent; border: none; font-size: 18px; cursor: pointer;
+             padding: 6px; color: #a4b0be; line-height: 1; }
+  .pwd-eye:hover { color: #2f3542; }
+  .card .row { display: flex; justify-content: center; gap: 10px; }
+  .tip { text-align: center; margin-top: 12px; font-size: 13px; color: #1e90ff; cursor: pointer; }
+  .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .card-head h2 { margin-bottom: 0; }
+  .login-tabs { display: flex; margin-bottom: 16px; border-bottom: 1px solid #dfe4ea; }
+  .login-tabs button { flex: 1; background: transparent; color: #57606f; border-radius: 0; padding: 8px 0;
+                       border-bottom: 2px solid transparent; font-size: 15px; }
+  .login-tabs button.active { color: #1e90ff; border-bottom-color: #1e90ff; font-weight: bold; }
+  #login-btn { background: #1e90ff; color: #fff; }
+  #login-btn:hover { background: #ff4757; color: #fff; }
+  #submit-btn:hover { background: #ff4757; color: #fff; }
+  .login-hint { text-align: center; margin-top: 10px; font-size: 12px; color: #a4b0be; }
+  .login-error { text-align: center; margin-top: 10px; font-size: 13px; color: #e84118;
+                 background: #ffebee; border: 1px solid #f5c6cb; border-radius: 6px; padding: 8px 10px; }
+  .empty { color: #a4b0be; text-align: center; padding: 40px 0; }
+  #toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.78);
+           color: #fff; padding: 10px 20px; border-radius: 8px; display: none; z-index: 999; font-size: 14px;
+           max-width: 80vw; }
+  .close-x { cursor: pointer; font-size: 24px; line-height: 1; color: #a4b0be; }
+  .close-x:hover { color: #2f3542; }
+  .confirm-card { width: 320px; }
+  .confirm-card p { text-align: center; margin-bottom: 18px; color: #57606f; line-height: 1.6; }
+
+  /* ===== 移动端适配（自动检测，屏幕宽度 <= 768px 生效）===== */
+  @media (max-width: 768px) {
+    header { padding: 10px 14px; }
+    header h1 { font-size: 16px; }
+    #user-bar { gap: 8px; font-size: 13px; }
+    .avatar { width: 30px; height: 30px; }
+    .back-btn { display: inline-block; }
+    .overlay .card { width: calc(100% - 24px); }
+    /* 登录/注册弹窗：小屏与横屏下卡片可滚动，避免关闭按钮/提交按钮被裁掉 */
+    .overlay .card { max-height: 86vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .card { padding: 20px 16px; }
+    .card-head { margin-bottom: 10px; }
+    .login-tabs { margin-bottom: 12px; }
+    .msg { max-width: 85%; }
+    #chat-title { padding: 10px 12px; }
+    #messages { padding: 12px; }
+    #input-row { padding: 10px 12px; }
+    #message-input { font-size: 16px; }
+    .model-preview-btn { max-width: 110px; font-size: 12px; }
+
+    /* 手机端采用「列表屏 / 聊天屏」两屏互斥布局 */
+    aside { width: 100%; flex: 1; border-right: none; }
+    #chat-panel { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 60;
+                  background: #f5f6fa; display: none; }
+    #app.show-chat #chat-panel { display: flex; }
+    #app.show-chat aside { display: none; }
+    .title-wrap strong { max-width: 52vw; }
+  }
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<div id="login-mask" class="overlay">
+  <div class="card">
+    <div class="card-head">
+      <h2 id="form-title">登录</h2>
+      <span class="close-x" id="login-close-btn" title="关闭">×</span>
+    </div>
+    <div class="login-tabs">
+      <button type="button" id="tab-login" class="active">登录</button>
+      <button type="button" id="tab-register">注册</button>
+    </div>
+    <input id="username" placeholder="用户名（2-32 个字符）" autocomplete="username">
+    <div class="pwd-wrap">
+      <input id="password" type="password" placeholder="密码（至少 6 位）" autocomplete="current-password">
+      <button type="button" class="pwd-eye" data-target="password" title="显示/隐藏密码">&#128065;</button>
+    </div>
+    <div class="pwd-wrap" id="confirm-pwd-wrap" style="display:none">
+      <input id="confirm-password" type="password" placeholder="确认密码" autocomplete="new-password">
+      <button type="button" class="pwd-eye" data-target="confirm-password" title="显示/隐藏密码">&#128065;</button>
+    </div>
+    <div class="row"><button class="primary" id="submit-btn" style="width:100%">登录</button></div>
+    <div class="login-error" id="login-error" style="display:none"></div>
+    <div class="login-hint" id="login-hint">登录后可使用对话、收藏、历史记录等功能</div>
+  </div>
+</div>
+
+<div id="confirm-mask" class="overlay">
+  <div class="card confirm-card">
+    <h2>提示</h2>
+    <p id="confirm-text">确定要执行该操作吗？</p>
+    <div class="row">
+      <button class="danger" id="confirm-ok-btn">确定</button>
+      <button class="ghost-dark" id="confirm-cancel-btn">取消</button>
+    </div>
+  </div>
+</div>
+
+<div id="rename-mask" class="overlay">
+  <div class="card confirm-card">
+    <h2>修改会话名称</h2>
+    <input id="rename-input" maxlength="200" placeholder="请输入新的会话名称">
+    <div class="row">
+      <button class="primary" id="rename-ok-btn">确定</button>
+      <button class="ghost-dark" id="rename-cancel-btn">取消</button>
+    </div>
+  </div>
+</div>
+
+<div id="role-mask" class="overlay">
+  <div class="card">
+    <div class="card-head">
+      <h2>角色设定</h2>
+      <span class="close-x" id="role-close-btn" title="关闭">×</span>
+    </div>
+    <textarea id="role-input" rows="6" placeholder="例如：你是一位资深的 Python 工程师，回答要简洁、专业、使用中文……"></textarea>
+    <div class="role-tip">该设定会作为 system 指令随每次提问发送给 AI，并保存在本会话记录中，可随时修改或清除。</div>
+    <div class="row">
+      <button class="primary" id="role-save-btn">保存</button>
+      <button class="ghost-dark" id="role-clear-btn">清除设定</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="app">
+  <header>
+    <h1>萧瑟喵AI工作台</h1>
+    <div id="user-bar">
+      <button class="ghost" id="login-btn" style="display:none">登录</button>
+      <span id="user-name"></span>
+      <div class="avatar" id="avatar-wrap" title="用户菜单" style="display:none">
+        <img id="user-avatar" alt="">
+        <span id="avatar-fallback"></span>
+      </div>
+      <button class="ghost" id="logout-btn" style="display:none">退出登录</button>
+      <div class="user-menu" id="user-menu" style="display:none">
+        <div class="user-menu-item" id="user-menu-manage"><span class="menu-icon">&#9787;</span>用户管理</div>
+        <div class="user-menu-item" id="user-menu-settings"><span class="menu-icon">&#9881;</span>设置</div>
+      </div>
+    </div>
+  </header>
+  <main>
+    <aside>
+      <button id="new-chat">+ 新建对话</button>
+      <div id="tabs">
+        <button data-tab="chats" class="active">对话</button>
+        <button data-tab="favorites">收藏</button>
+        <button data-tab="history">历史</button>
+      </div>
+      <div id="list-toolbar"><button id="clear-btn">清空当前列表</button></div>
+      <ul id="side-list"></ul>
+    </aside>
+    <section id="chat-panel">
+      <div id="chat-title">
+        <div class="title-wrap">
+          <button class="back-btn" id="back-btn" title="返回列表">&#8592;</button>
+          <strong id="title-text">选择或新建一个对话</strong>
+          <button class="title-rename" id="rename-current-btn" title="修改会话名称" style="display:none">&#9998;</button>
+        </div>
+        <div class="title-actions">
+          <button class="title-role" id="role-btn" title="会话设置" style="display:none">&#9881;</button>
+          <button class="primary" id="fav-btn" style="display:none">收藏</button>
+          <div class="role-menu" id="role-menu" style="display:none">
+            <div class="role-menu-item" id="role-menu-persona">角色设定</div>
+          </div>
+        </div>
+      </div>
+      <div id="messages"><div class="empty">开始和萧瑟喵对话吧～</div></div>
+      <div id="input-row">
+        <textarea id="message-input" placeholder="输入你的问题，Ctrl+Enter 发送"></textarea>
+        <div class="input-actions">
+          <div class="model-picker">
+            <button class="model-preview-btn" id="model-preview-btn" title="当前使用的大模型，点击切换">
+              <span id="model-preview">公共API</span>
+            </button>
+            <button class="ds-caret" id="ds-caret" title="选择具体模型" style="display:none">&#9650;</button>
+            <div class="model-menu" id="model-menu" style="display:none"></div>
+            <div class="model-menu" id="ds-model-menu" style="display:none"></div>
+          </div>
+          <button class="primary" id="send-btn">发送</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+var token = localStorage.getItem("token") || "";
+var currentChatId = null;
+var currentTab = "chats";
+var streaming = false;
+var confirmOkHandler = null;
+var renameChatId = null;
+var userInfo = null;
+var currentRole = "";
+var llmCfg = null;
+var activeProvider = localStorage.getItem("llm_active_provider") || "";
+var activeBaseUrl = localStorage.getItem("llm_active_base_url") || "";
+var activeModel = localStorage.getItem("llm_active_model") || "";
+var sessionChatIds = [];
+try { sessionChatIds = JSON.parse(sessionStorage.getItem("session_chat_ids") || "[]") || []; } catch (e) { sessionChatIds = []; }
+try { userInfo = JSON.parse(localStorage.getItem("userInfo") || "null"); } catch (e) { userInfo = null; }
+
+function saveSessionChatIds() {
+  sessionStorage.setItem("session_chat_ids", JSON.stringify(sessionChatIds));
+}
+
+function addSessionChatId(id) {
+  if (sessionChatIds.indexOf(id) < 0) {
+    sessionChatIds.push(id);
+    saveSessionChatIds();
+  }
+}
+
+function $(id) { return document.getElementById(id); }
+
+function toast(msg) {
+  var t = $("toast");
+  t.textContent = msg;
+  t.style.display = "block";
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(function () { t.style.display = "none"; }, 2200);
+}
+
+function api(path, options) {
+  options = options || {};
+  options.headers = options.headers || {};
+  options.headers["Content-Type"] = "application/json";
+  if (token) { options.headers["Authorization"] = token; }
+  return fetch(path, options).then(function (resp) {
+    return resp.json().catch(function () { return { code: -1, message: "响应解析失败" }; });
+  });
+}
+
+// ===== 移动端自动检测与屏幕切换 =====
+function isMobile() {
+  return window.matchMedia("(max-width: 768px)").matches;
+}
+
+function showChatScreen() {
+  if (isMobile()) { $("app").classList.add("show-chat"); }
+}
+
+function showListScreen() {
+  $("app").classList.remove("show-chat");
+}
+
+$("back-btn").addEventListener("click", showListScreen);
+
+window.matchMedia("(max-width: 768px)").addEventListener("change", function (e) {
+  if (!e.matches) { showListScreen(); } // 切回桌面宽度时恢复左右布局
+});
+
+function showApp() {
+  $("login-mask").style.display = "none";
+  $("app").style.display = "flex";
+}
+
+// ===== 登录 / 注册弹窗 =====
+function openLoginModal() {
+  setLoginMode(false);
+  $("login-mask").style.display = "flex";
+  setTimeout(function () { $("username").focus(); }, 50);
+}
+
+function closeLoginModal() {
+  $("login-mask").style.display = "none";
+}
+
+function setLoginMode(register) {
+  isRegister = !!register;
+  setLoginError(null);
+  $("tab-login").classList.toggle("active", !isRegister);
+  $("tab-register").classList.toggle("active", isRegister);
+  $("form-title").textContent = isRegister ? "注册" : "登录";
+  $("submit-btn").textContent = isRegister ? "注册" : "登录";
+  $("confirm-pwd-wrap").style.display = isRegister ? "block" : "none";
+  $("login-hint").textContent = isRegister
+    ? "注册后即可登录使用对话功能"
+    : "登录后可使用对话、收藏、历史记录等功能";
+}
+
+function requireLogin() {
+  if (token) { return true; }
+  toast("请先登录后再使用该功能");
+  openLoginModal();
+  return false;
+}
+
+function logout() {
+  token = "";
+  localStorage.removeItem("token");
+  sessionStorage.removeItem("llm_api_key_temp");
+  localStorage.removeItem("llm_active_provider");
+  localStorage.removeItem("llm_active_base_url");
+  localStorage.removeItem("llm_active_model");
+  activeProvider = "";
+  activeBaseUrl = "";
+  activeModel = "";
+  sessionChatIds = [];
+  sessionStorage.removeItem("session_chat_ids");
+  setUserInfo(null);
+  llmCfg = null;
+  resetChatPanel();
+  closeLoginModal();
+  $("user-menu").style.display = "none";
+  $("model-menu").style.display = "none";
+  $("ds-model-menu").style.display = "none";
+  $("side-list").innerHTML = "";
+  renderModelPreview();
+}
+
+function askConfirm(text, onOk) {
+  $("confirm-text").textContent = text;
+  confirmOkHandler = onOk || null;
+  $("confirm-mask").style.display = "flex";
+}
+
+$("confirm-ok-btn").addEventListener("click", function () {
+  $("confirm-mask").style.display = "none";
+  var fn = confirmOkHandler;
+  confirmOkHandler = null;
+  if (fn) { fn(); }
+});
+
+$("confirm-cancel-btn").addEventListener("click", function () {
+  $("confirm-mask").style.display = "none";
+  confirmOkHandler = null;
+});
+
+$("confirm-mask").addEventListener("click", function (e) {
+  if (e.target === this) { $("confirm-mask").style.display = "none"; confirmOkHandler = null; }
+});
+
+function askRename(chatId, currentTitle) {
+  renameChatId = chatId;
+  $("rename-input").value = currentTitle || "";
+  $("rename-mask").style.display = "flex";
+  setTimeout(function () { $("rename-input").focus(); $("rename-input").select(); }, 50);
+}
+
+function closeRename() {
+  $("rename-mask").style.display = "none";
+  renameChatId = null;
+}
+
+$("rename-ok-btn").addEventListener("click", async function () {
+  var title = $("rename-input").value.trim();
+  var cid = renameChatId;
+  closeRename();
+  if (!title || !cid) { return; }
+  var resp = await api("/api/chat/title?chat_id=" + cid, {
+    method: "PUT",
+    body: JSON.stringify({ title: title })
+  });
+  if (resp.code !== 0) { toast(resp.message); return; }
+  toast("名称已修改");
+  if (currentChatId === cid) { $("title-text").textContent = title; }
+  loadList(currentTab);
+});
+
+$("rename-cancel-btn").addEventListener("click", closeRename);
+$("rename-mask").addEventListener("click", function (e) { if (e.target === this) { closeRename(); } });
+
+function resetChatPanel() {
+  currentChatId = null;
+  currentRole = "";
+  $("title-text").textContent = "选择或新建一个对话";
+  $("fav-btn").style.display = "none";
+  $("rename-current-btn").style.display = "none";
+  $("role-btn").style.display = "none";
+  $("role-menu").style.display = "none";
+  $("messages").innerHTML = '<div class="empty">选择左侧对话开始聊天</div>';
+  showListScreen();
+}
+
+function setUserInfo(u) {
+  userInfo = u || null;
+  if (userInfo) { localStorage.setItem("userInfo", JSON.stringify(userInfo)); }
+  else { localStorage.removeItem("userInfo"); }
+  renderUserBar();
+}
+
+function initialChar(u) {
+  return ((u.nickname || u.username || "喵").trim()[0] || "喵").toUpperCase();
+}
+
+function renderUserBar() {
+  var loggedIn = !!userInfo && !!token;
+  $("login-btn").style.display = loggedIn ? "none" : "inline-block";
+  $("user-name").style.display = loggedIn ? "inline" : "none";
+  $("avatar-wrap").style.display = loggedIn ? "block" : "none";
+  $("logout-btn").style.display = loggedIn ? "inline-block" : "none";
+  var u = userInfo || {};
+  $("user-name").textContent = u.nickname || u.username || "";
+  var img = $("user-avatar"), fb = $("avatar-fallback");
+  if (u.avatar) {
+    img.src = u.avatar;
+    img.style.display = "block";
+    fb.style.display = "none";
+  } else {
+    img.style.display = "none";
+    img.removeAttribute("src");
+    fb.textContent = initialChar(u);
+    fb.style.display = "flex";
+  }
+}
+
+$("user-avatar").addEventListener("error", function () {
+  $("user-avatar").style.display = "none";
+  var fb = $("avatar-fallback");
+  fb.textContent = initialChar(userInfo || {});
+  fb.style.display = "flex";
+});
+
+// ===== 头像下拉菜单：用户管理 / 设置 =====
+$("avatar-wrap").addEventListener("click", function (e) {
+  e.stopPropagation();
+  if (!requireLogin()) { return; }
+  var m = $("user-menu");
+  m.style.display = m.style.display === "block" ? "none" : "block";
+});
+
+document.addEventListener("click", function () {
+  $("user-menu").style.display = "none";
+  $("model-menu").style.display = "none";
+});
+$("user-menu").addEventListener("click", function (e) { e.stopPropagation(); });
+
+$("user-menu-manage").addEventListener("click", function () {
+  $("user-menu").style.display = "none";
+  window.location.href = "/user";
+});
+
+$("user-menu-settings").addEventListener("click", function () {
+  $("user-menu").style.display = "none";
+  window.location.href = "/settings";
+});
+
+$("rename-current-btn").addEventListener("click", function () {
+  if (currentChatId) { askRename(currentChatId, $("title-text").textContent); }
+});
+
+
+var isRegister = false;
+$("tab-login").addEventListener("click", function () { setLoginMode(false); });
+$("tab-register").addEventListener("click", function () { setLoginMode(true); });
+$("login-close-btn").addEventListener("click", closeLoginModal);
+$("login-mask").addEventListener("click", function (e) { if (e.target === this) { closeLoginModal(); } });
+$("login-btn").addEventListener("click", openLoginModal);
+$("submit-btn").addEventListener("click", submitLogin);
+document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeLoginModal(); } });
+$("username").addEventListener("keydown", function (e) { if (e.key === "Enter") { submitLogin(); } });
+$("password").addEventListener("keydown", function (e) { if (e.key === "Enter") { submitLogin(); } });
+$("confirm-password").addEventListener("keydown", function (e) { if (e.key === "Enter") { submitLogin(); } });
+
+// 密码显示/隐藏切换（登录/注册）
+document.querySelectorAll(".pwd-eye").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var input = document.getElementById(btn.getAttribute("data-target"));
+    if (!input) { return; }
+    var show = input.type === "password";
+    input.type = show ? "text" : "password";
+    btn.innerHTML = show ? "&#128064;" : "&#128065;";
+  });
+});
+
+function setLoginError(msg) {
+  var el = $("login-error");
+  if (msg) { el.textContent = msg; el.style.display = "block"; }
+  else { el.textContent = ""; el.style.display = "none"; }
+}
+
+async function submitLogin() {
+  setLoginError(null);
+  var username = $("username").value.trim();
+  var password = $("password").value;
+  if (!username || !password) { setLoginError("请输入用户名和密码"); return; }
+  if (isRegister) {
+    if (username.length < 2) { setLoginError("用户名至少 2 个字符"); return; }
+    if (password.length < 6) { setLoginError("密码至少 6 位"); return; }
+    if (password !== $("confirm-password").value) { setLoginError("两次输入的密码不一致"); return; }
+  }
+  var btn = $("submit-btn");
+  btn.disabled = true;
+  try {
+    var path = isRegister ? "/api/user/register" : "/api/user/login";
+    var resp = await api(path, { method: "POST", body: JSON.stringify({ username: username, password: password }) });
+    if (resp.code !== 0) {
+      // 账号或密码错误等校验失败：在弹窗内直接提示
+      var msg = resp.message || "操作失败，请重试";
+      setLoginError(msg);
+      toast(msg);
+      $("password").focus();
+      $("password").select();
+      return;
+    }
+    if (isRegister) {
+      toast("注册成功，请登录");
+      $("username").value = username;
+      $("password").value = "";
+      $("confirm-password").value = "";
+      setLoginMode(false);
+      $("password").focus();
+      return;
+    }
+    token = resp.data.token;
+    localStorage.setItem("token", token);
+    sessionStorage.removeItem("llm_api_key_temp");
+    localStorage.removeItem("llm_active_provider");
+    localStorage.removeItem("llm_active_base_url");
+    localStorage.removeItem("llm_active_model");
+    activeProvider = "";
+    activeBaseUrl = "";
+    activeModel = "";
+    // 每次登录开启新的会话：对话列表只显示本次登录创建的会话
+    sessionChatIds = [];
+    saveSessionChatIds();
+    setUserInfo(resp.data.user);
+    closeLoginModal();
+    loadList("chats");
+    loadLlmConfig();
+    renderModelPreview();
+  } catch (e) {
+    setLoginError("网络错误，请检查服务是否已启动：" + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+$("logout-btn").addEventListener("click", async function () {
+  await api("/api/user/logout", { method: "POST" });
+  logout();
+});
+
+$("new-chat").addEventListener("click", function () {
+  if (!requireLogin()) { return; }
+  currentChatId = null;
+  currentRole = "";
+  $("title-text").textContent = "新对话";
+  $("fav-btn").style.display = "none";
+  $("rename-current-btn").style.display = "none";
+  $("role-btn").style.display = "none";
+  $("role-menu").style.display = "none";
+  $("messages").innerHTML = '<div class="empty">输入内容开始新对话</div>';
+  showChatScreen();
+});
+
+Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function (btn) {
+  btn.addEventListener("click", function () {
+    Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function (b) {
+      b.classList.remove("active");
+    });
+    btn.classList.add("active");
+    currentTab = btn.getAttribute("data-tab");
+    loadList(currentTab);
+  });
+});
+
+$("clear-btn").addEventListener("click", function () {
+  // 游客：清空列表为登录后功能，静默忽略
+  if (!token) { return; }
+  var map = {
+    chats: { text: "确定要清空全部对话吗？此操作不可恢复！", path: "/api/chat/clear" },
+    favorites: { text: "确定要清空全部收藏吗？", path: "/api/favorite/clear" },
+    history: { text: "确定要清空全部浏览历史吗？", path: "/api/history/clear" }
+  };
+  var cfg = map[currentTab];
+  askConfirm(cfg.text, function () {
+    api(cfg.path, { method: "DELETE" }).then(function (resp) {
+      if (resp.code !== 0) { toast(resp.message); return; }
+      toast("已清空");
+      resetChatPanel();
+      loadList(currentTab);
+    });
+  });
+});
+
+function deleteSideItem(chatId) {
+  var path;
+  if (currentTab === "chats") { path = "/api/chat/delete?chat_id=" + chatId; }
+  else if (currentTab === "favorites") { path = "/api/favorite/remove?chat_id=" + chatId; }
+  else { path = "/api/history/delete?chat_id=" + chatId; }
+  api(path, { method: "DELETE" }).then(function (resp) {
+    if (resp.code !== 0) { toast(resp.message); return; }
+    toast("删除成功");
+    if (currentChatId === chatId) { resetChatPanel(); }
+    loadList(currentTab);
+  });
+}
+
+function renderSide(list) {
+  var ul = $("side-list");
+  ul.innerHTML = "";
+  if (!list || !list.length) {
+    ul.innerHTML = '<li class="empty">暂无数据</li>';
+    return;
+  }
+  list.forEach(function (item) {
+    var li = document.createElement("li");
+    var content = document.createElement("div");
+    content.className = "side-text";
+    content.innerHTML = "<div>" + escapeHtml(item.title) + "</div>" +
+      '<div class="meta">' + new Date(item.created_at).toLocaleString() + "</div>";
+    li.appendChild(content);
+    var edit = document.createElement("button");
+    edit.className = "side-edit";
+    edit.innerHTML = "&#9998;";
+    edit.title = "重命名";
+    edit.addEventListener("click", function (e) {
+      e.stopPropagation();
+      askRename(item.id, item.title);
+    });
+    li.appendChild(edit);
+    var del = document.createElement("button");
+    del.className = "side-del";
+    del.textContent = "×";
+    del.title = "删除";
+    del.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var label = currentTab === "chats" ? "这条对话" : currentTab === "favorites" ? "这条收藏" : "这条浏览记录";
+      askConfirm("确定要删除" + label + "吗？", function () { deleteSideItem(item.id); });
+    });
+    li.appendChild(del);
+    li.addEventListener("click", function () { openChat(item.id); });
+    ul.appendChild(li);
+  });
+}
+
+function loadList(tab) {
+  // 游客：静默显示空列表，不弹登录框、不请求接口
+  if (!token) { renderSide([]); return; }
+  var path = "/api/chat/list?page=1&size=50";
+  if (tab === "favorites") { path = "/api/favorite/list?page=1&size=50"; }
+  if (tab === "history") { path = "/api/history/list?page=1&size=50"; }
+  api(path).then(function (resp) {
+    if (resp.code !== 0) { toast(resp.message); return; }
+    var items = resp.data.items || [];
+    // 对话列表只显示本次登录创建的会话；收藏/历史不受影响
+    if (tab === "chats") {
+      items = items.filter(function (it) { return sessionChatIds.indexOf(it.id) >= 0; });
+    }
+    renderSide(items);
+  });
+}
+
+function openChat(chatId) {
+  if (!requireLogin()) { return; }
+  currentChatId = chatId;
+  $("rename-current-btn").style.display = "inline-block";
+  showChatScreen();
+  api("/api/chat/detail?chat_id=" + chatId).then(function (resp) {
+    if (resp.code !== 0) { toast(resp.message); return; }
+    var data = resp.data;
+    $("title-text").textContent = data.title;
+    currentRole = data.system_prompt || "";
+    $("role-btn").style.display = "inline-block";
+    $("role-btn").classList.toggle("active", !!currentRole);
+    $("role-menu").style.display = "none";
+    // 打开会话即显示收藏按钮（默认未收藏），再根据检查结果更新
+    $("fav-btn").style.display = "inline-block";
+    $("fav-btn").textContent = "收藏";
+    $("fav-btn").dataset.favorited = "0";
+    renderMessages(data.messages);
+    api("/api/history/add", { method: "POST", body: JSON.stringify({ chat_id: chatId }) }).then(function (r) {
+      if (r.code === 0 && currentTab === "history") { loadList("history"); }
+    });
+    api("/api/favorite/check?chat_id=" + chatId).then(function (r) {
+      if (r.code === 0) {
+        $("fav-btn").style.display = "inline-block";
+        $("fav-btn").textContent = r.data.favorited ? "取消收藏" : "收藏";
+        $("fav-btn").dataset.favorited = r.data.favorited ? "1" : "0";
+      }
+    });
+  });
+}
+
+function renderMessages(messages) {
+  var box = $("messages");
+  box.innerHTML = "";
+  if (!messages || !messages.length) { box.innerHTML = '<div class="empty">暂无消息</div>'; return; }
+  messages.forEach(function (m) { box.appendChild(messageNode(m.role, m.content)); });
+  box.scrollTop = box.scrollHeight;
+}
+
+function messageNode(role, content) {
+  var div = document.createElement("div");
+  div.className = "msg " + (role === "user" ? "user" : role === "error" ? "error" : "assistant");
+  div.textContent = content;
+  return div;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+$("fav-btn").addEventListener("click", async function () {
+  if (!currentChatId) { return; }
+  if (!requireLogin()) { return; }
+  var favorited = $("fav-btn").dataset.favorited === "1";
+  var path = favorited ? "/api/favorite/remove?chat_id=" + currentChatId : "/api/favorite/add";
+  var resp;
+  if (favorited) {
+    resp = await api(path, { method: "DELETE" });
+  } else {
+    resp = await api(path, { method: "POST", body: JSON.stringify({ chat_id: currentChatId }) });
+  }
+  if (resp.code !== 0) { toast(resp.message); return; }
+  $("fav-btn").textContent = favorited ? "收藏" : "取消收藏";
+  $("fav-btn").dataset.favorited = favorited ? "0" : "1";
+  if (currentTab === "favorites") { loadList("favorites"); }
+});
+
+// ===== 会话设置：角色设定 =====
+$("role-btn").addEventListener("click", function (e) {
+  e.stopPropagation();
+  var menu = $("role-menu");
+  menu.style.display = menu.style.display === "block" ? "none" : "block";
+});
+
+document.addEventListener("click", function () { $("role-menu").style.display = "none"; });
+$("role-menu").addEventListener("click", function (e) { e.stopPropagation(); });
+
+$("role-menu-persona").addEventListener("click", function () {
+  $("role-menu").style.display = "none";
+  $("role-input").value = currentRole || "";
+  $("role-mask").style.display = "flex";
+  setTimeout(function () { $("role-input").focus(); }, 50);
+});
+
+$("role-save-btn").addEventListener("click", async function () {
+  if (!currentChatId) { return; }
+  var value = $("role-input").value.trim();
+  var resp = await api("/api/chat/role?chat_id=" + currentChatId, {
+    method: "PUT",
+    body: JSON.stringify({ system_prompt: value })
+  });
+  if (resp.code !== 0) { toast(resp.message); return; }
+  currentRole = value;
+  $("role-btn").classList.toggle("active", !!currentRole);
+  $("role-mask").style.display = "none";
+  toast(value ? "角色设定已保存" : "已清除角色设定");
+});
+
+$("role-clear-btn").addEventListener("click", async function () {
+  if (!currentChatId) { return; }
+  var resp = await api("/api/chat/role?chat_id=" + currentChatId, {
+    method: "PUT",
+    body: JSON.stringify({ system_prompt: "" })
+  });
+  if (resp.code !== 0) { toast(resp.message); return; }
+  currentRole = "";
+  $("role-btn").classList.toggle("active", false);
+  $("role-input").value = "";
+  $("role-mask").style.display = "none";
+  toast("已清除角色设定");
+});
+
+$("role-close-btn").addEventListener("click", function () { $("role-mask").style.display = "none"; });
+$("role-mask").addEventListener("click", function (e) { if (e.target === this) { $("role-mask").style.display = "none"; } });
+
+// ===== 大模型选择（+ 按钮：预览 + 选择 + ▲选具体模型） =====
+var DEEPSEEK_MODELS = ["deepseek-v4-pro", "deepseek-v4-flash"];
+
+function loadLlmConfig() {
+  if (!token) { return; }
+  api("/api/user/settings/llm").then(function (resp) {
+    if (resp.code !== 0) { return; }
+    llmCfg = resp.data;
+    validateActiveSelection();
+    renderModelMenu();
+    renderModelPreview();
+  });
+}
+
+function validateActiveSelection() {
+  // 若上次选择的来源已不可用（如 DeepSeek key 未保存且会话失效），自动回退公共 API
+  var ok = false;
+  if (!activeProvider || activeProvider === "public") {
+    ok = true;
+  } else if (activeProvider === "local") {
+    ok = !!(llmCfg && llmCfg.llm_base_url);
+  } else if (activeProvider === "deepseek") {
+    ok = !!((llmCfg && llmCfg.llm_has_api_key) || sessionStorage.getItem("llm_api_key_temp"));
+  }
+  if (!ok) {
+    activeProvider = "";
+    activeBaseUrl = "";
+    activeModel = "";
+    localStorage.removeItem("llm_active_provider");
+    localStorage.removeItem("llm_active_base_url");
+    localStorage.removeItem("llm_active_model");
+  }
+}
+
+function modelLabel(provider) {
+  if (provider === "local") { return "本地大模型"; }
+  if (provider === "deepseek") { return "DeepSeek"; }
+  return "公共API";
+}
+
+function renderModelPreview() {
+  var p = activeProvider || "public";
+  var text;
+  if (p === "public") {
+    var defModel = (llmCfg && llmCfg.server_default_model) || "";
+    text = "公共API" + (defModel ? " · " + defModel : "");
+  } else if (p === "local") {
+    text = "本地 · " + (activeModel || (llmCfg && llmCfg.llm_model) || (llmCfg && llmCfg.llm_base_url) || "默认");
+  } else {
+    text = "DeepSeek · " + (activeModel || (llmCfg && llmCfg.llm_model) || "deepseek-v4-flash");
+  }
+  $("model-preview").textContent = text;
+  // 多模型来源显示 ▲，可进一步选择具体模型
+  $("ds-caret").style.display = (activeProvider === "deepseek") ? "inline-block" : "none";
+}
+
+function addMenuItem(menu, name, detail, isActive, onClick) {
+  var div = document.createElement("div");
+  div.className = "model-menu-item" + (isActive ? " active" : "");
+  var n = document.createElement("div");
+  n.className = "model-name";
+  n.textContent = name;
+  var d = document.createElement("div");
+  d.className = "model-detail";
+  d.textContent = detail;
+  div.appendChild(n);
+  div.appendChild(d);
+  div.addEventListener("click", onClick);
+  menu.appendChild(div);
+}
+
+function selectProvider(provider) {
+  activeProvider = provider;
+  activeBaseUrl = "";
+  activeModel = "";
+  if (provider === "local" && llmCfg) {
+    activeBaseUrl = llmCfg.llm_base_url || "";
+    activeModel = llmCfg.llm_model || "";
+  }
+  if (provider === "deepseek") {
+    activeModel = (llmCfg && llmCfg.llm_model) || "deepseek-v4-flash";
+  }
+  localStorage.setItem("llm_active_provider", activeProvider);
+  localStorage.setItem("llm_active_base_url", activeBaseUrl);
+  localStorage.setItem("llm_active_model", activeModel);
+  $("model-menu").style.display = "none";
+  $("ds-model-menu").style.display = "none";
+  renderModelMenu();
+  renderModelPreview();
+  toast("已切换到：" + modelLabel(provider));
+}
+
+function renderModelMenu() {
+  var menu = $("model-menu");
+  menu.innerHTML = "";
+  var defModel = (llmCfg && llmCfg.server_default_model) || "服务器默认";
+  addMenuItem(menu, "公共API", defModel, activeProvider === "public" || !activeProvider, function () {
+    selectProvider("public");
+  });
+  if (llmCfg && llmCfg.llm_base_url) {
+    addMenuItem(menu, "本地大模型", llmCfg.llm_base_url + (llmCfg.llm_model ? " · " + llmCfg.llm_model : ""), activeProvider === "local", function () {
+      selectProvider("local");
+    });
+  }
+  var hasDsKey = (llmCfg && llmCfg.llm_has_api_key) || !!sessionStorage.getItem("llm_api_key_temp");
+  if (hasDsKey) {
+    addMenuItem(menu, "DeepSeek", "多个模型可选（点 ▲ 切换）", activeProvider === "deepseek", function () {
+      selectProvider("deepseek");
+    });
+  }
+}
+
+function renderDsModelMenu() {
+  var menu = $("ds-model-menu");
+  menu.innerHTML = "";
+  var list = DEEPSEEK_MODELS.slice();
+  var saved = (llmCfg && llmCfg.llm_model) || "";
+  if (saved && list.indexOf(saved) < 0) { list.unshift(saved); }
+  list.forEach(function (m) {
+    var detail = m === "deepseek-v4-pro" ? "V4 Pro · 深度推理" : m === "deepseek-v4-flash" ? "V4 Flash · 快速经济" : "DeepSeek 模型";
+    addMenuItem(menu, m, detail, activeModel === m, function () {
+      activeModel = m;
+      localStorage.setItem("llm_active_model", activeModel);
+      $("ds-model-menu").style.display = "none";
+      renderDsModelMenu();
+      renderModelPreview();
+      toast("DeepSeek 模型已切换：" + m);
+    });
+  });
+}
+
+function toggleMenu(menuId) {
+  var m = $(menuId);
+  m.style.display = m.style.display === "block" ? "none" : "block";
+}
+
+$("model-preview-btn").addEventListener("click", function (e) {
+  e.stopPropagation();
+  renderModelMenu();
+  toggleMenu("model-menu");
+  $("ds-model-menu").style.display = "none";
+});
+$("ds-caret").addEventListener("click", function (e) {
+  e.stopPropagation();
+  renderDsModelMenu();
+  toggleMenu("ds-model-menu");
+  $("model-menu").style.display = "none";
+});
+$("model-menu").addEventListener("click", function (e) { e.stopPropagation(); });
+$("ds-model-menu").addEventListener("click", function (e) { e.stopPropagation(); });
+document.addEventListener("click", function () {
+  $("model-menu").style.display = "none";
+  $("ds-model-menu").style.display = "none";
+});
+
+$("send-btn").addEventListener("click", sendMessage);
+$("message-input").addEventListener("keydown", function (e) {
+  if (e.ctrlKey && e.key === "Enter") { sendMessage(); }
+});
+
+async function sendMessage() {
+  if (streaming) { return; }
+  if (!requireLogin()) { return; }
+  var text = $("message-input").value.trim();
+  if (!text) { return; }
+  $("message-input").value = "";
+  var body = currentChatId ? { chat_id: currentChatId, message: text } : { message: text };
+  // 附加大模型来源选择（+ 菜单切换）
+  if (activeProvider) { body.provider = activeProvider; }
+  if (activeProvider === "local") {
+    if (activeBaseUrl) { body.base_url = activeBaseUrl; }
+    if (activeModel) { body.model = activeModel; }
+  } else if (activeProvider === "deepseek") {
+    if (activeModel) { body.model = activeModel; }
+    // 未保存到账号时携带临时 API Key
+    if (!(llmCfg && llmCfg.llm_has_api_key)) {
+      var tmpKey = sessionStorage.getItem("llm_api_key_temp");
+      if (tmpKey) { body.api_key = tmpKey; }
+    }
+  } else if (activeModel) {
+    body.model = activeModel;
+  }
+  var box = $("messages");
+  if (box.querySelector(".empty")) { box.innerHTML = ""; }
+  box.appendChild(messageNode("user", text));
+  var aiNode = messageNode("assistant", "");
+  box.appendChild(aiNode);
+  box.scrollTop = box.scrollHeight;
+  streaming = true;
+  $("send-btn").disabled = true;
+  var receivedDone = false;
+  try {
+    var resp = await fetch("/api/chat/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": token },
+      body: JSON.stringify(body)
+    });
+    if (!resp.ok) {
+      var err = await resp.json().catch(function () { return { message: "请求失败" }; });
+      aiNode.className = "msg error";
+      aiNode.textContent = err.message || "请求失败";
+      return;
+    }
+    var reader = resp.body.getReader();
+    var decoder = new TextDecoder("utf-8");
+    var buffer = "";
+    while (true) {
+      var chunk = await reader.read();
+      if (chunk.done) { break; }
+      buffer += decoder.decode(chunk.value, { stream: true });
+      var parts = buffer.split("\n\n");
+      buffer = parts.pop();
+      parts.forEach(function (part) {
+        var line = part.split("\n").find(function (l) { return l.indexOf("data: ") === 0; });
+        if (!line) { return; }
+        var payload = line.slice(6).trim();
+        if (payload === "[DONE]") { return; } // 结束标记，不是 JSON，直接跳过
+        var data;
+        try {
+          data = JSON.parse(payload);
+        } catch (e) {
+          return; // 忽略无法解析的事件，避免中断流式显示
+        }
+        if (data.type === "delta") { aiNode.textContent += data.content; }
+        if (data.type === "error") {
+          aiNode.className = "msg error";
+          aiNode.textContent = data.message;
+        }
+        if (data.type === "done") {
+          receivedDone = true;
+          currentChatId = data.chat_id;
+          addSessionChatId(data.chat_id);
+          // 新对话由服务端自动生成标题并回传；旧对话保持原标题不变
+          if (data.title) { $("title-text").textContent = data.title; }
+          $("rename-current-btn").style.display = "inline-block";
+        }
+        box.scrollTop = box.scrollHeight;
+      });
+    }
+    buffer += decoder.decode();
+  } catch (e) {
+    // 已有内容时保留内容，仅追加提示；没内容时才显示完整错误
+    if (aiNode.textContent) {
+      aiNode.textContent += "\n[连接中断，正在自动同步…]";
+    } else {
+      aiNode.className = "msg error";
+      aiNode.textContent = "网络错误：" + e.message;
+    }
+  } finally {
+    streaming = false;
+    $("send-btn").disabled = false;
+    if (!receivedDone && currentChatId) {
+      // 流未正常结束：自动从服务端拉取最新内容，无需手动刷新
+      openChat(currentChatId);
+    } else {
+      box.scrollTop = box.scrollHeight;
+    }
+  }
+  loadList("chats");
+}
+
+// 直接进入使用界面（游客模式），右上角提供登录/注册入口
+showApp();
+setUserInfo(null);
+// 从修改密码页跳转而来：自动弹出登录框
+if (location.search.indexOf("login=1") >= 0) {
+  setTimeout(function () { openLoginModal(); }, 300);
+}
+if (token) {
+  api("/api/user/info").then(function (resp) {
+    if (resp.code === 0) {
+      setUserInfo(resp.data);
+      loadList("chats");
+      loadLlmConfig();
+    } else {
+      // token 失效：清除本地状态，保持游客模式
+      token = "";
+      localStorage.removeItem("token");
+      setUserInfo(null);
+    }
+  });
+}
+</script>
+</body>
+</html>

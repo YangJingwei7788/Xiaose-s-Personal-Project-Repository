@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>用户管理 - 萧瑟喵AI</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f5f6fa; color: #2f3542; }
+  header { display: flex; align-items: center; padding: 12px 12px; background: #57606f; color: #fff;
+           position: sticky; top: 0; z-index: 50; }
+  header .back { background: transparent; color: #fff; border: none; font-size: 22px; line-height: 1;
+                 padding: 4px 10px; border-radius: 6px; cursor: pointer; }
+  header .back:active { background: rgba(255,255,255,.2); }
+  header h1 { flex: 1; text-align: center; font-size: 17px; margin-right: 44px; }
+  main { max-width: 560px; margin: 16px auto; padding: 0 16px 32px; }
+  .card { background: #fff; border-radius: 12px; padding: 20px 16px; margin-bottom: 14px; }
+  .panel-avatar { width: 88px; height: 88px; border-radius: 50%; overflow: hidden; margin: 0 auto 10px;
+                  background: #1e90ff; color: #fff; display: flex; align-items: center; justify-content: center;
+                  font-size: 36px; font-weight: bold; }
+  .panel-avatar img { width: 100%; height: 100%; object-fit: cover; display: none; }
+  .avatar-tip { text-align: center; font-size: 12px; color: #a4b0be; margin-bottom: 4px; line-height: 1.5; }
+  label { display: block; font-size: 13px; color: #57606f; margin: 12px 0 4px; }
+  input { width: 100%; padding: 11px 10px; border: 1px solid #dfe4ea; border-radius: 8px; font-size: 16px;
+          font-family: inherit; }
+  input:disabled { background: #f1f2f6; color: #a4b0be; }
+  h3 { font-size: 15px; margin-bottom: 4px; }
+  button { cursor: pointer; border: none; border-radius: 8px; padding: 11px 14px; font-size: 15px; }
+  .primary { background: #1e90ff; color: #fff; width: 100%; margin-top: 12px; }
+  .primary:active { background: #1289d9; }
+  .danger { background: #ff4757; color: #fff; width: 100%; padding: 12px; }
+  .danger:active { background: #e84118; }
+  .btn-block { width: 100%; margin-top: 12px; }
+  hr { border: none; border-top: 1px solid #dfe4ea; margin: 16px 0; }
+  #toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.78);
+           color: #fff; padding: 10px 20px; border-radius: 8px; display: none; z-index: 999; font-size: 14px;
+           max-width: 80vw; }
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center;
+             justify-content: center; z-index: 100; }
+  .confirm-card { width: 320px; max-width: calc(100% - 32px); background: #fff; border-radius: 12px;
+                  padding: 24px 20px; }
+  .confirm-card h2 { text-align: center; margin-bottom: 10px; font-size: 17px; }
+  .confirm-card p { font-size: 13px; color: #57606f; line-height: 1.6; margin-bottom: 18px; text-align: center; }
+  .row { display: flex; gap: 10px; }
+  .row button { width: auto; flex: 1; }
+  .pwd-wrap { position: relative; }
+  .pwd-wrap input { padding-right: 44px; }
+  .pwd-eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+             background: transparent; border: none; font-size: 18px; cursor: pointer;
+             padding: 6px; color: #a4b0be; line-height: 1; }
+  .pwd-eye:hover { color: #2f3542; }
+  @media (min-width: 769px) {
+    header { padding: 12px 20px; }
+    main { margin: 24px auto; }
+  }
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<header>
+  <button class="back" id="back-btn" title="返回">&#8592;</button>
+  <h1>用户管理</h1>
+</header>
+
+<main>
+  <div class="card">
+    <div class="panel-avatar">
+      <img id="panel-avatar-img" alt="">
+      <span id="panel-avatar-fallback"></span>
+    </div>
+    <button class="primary btn-block" id="upload-avatar-btn">更换头像</button>
+    <div class="avatar-tip">支持 jpg/png/gif/webp，不超过 5MB；上传后自动替换旧头像</div>
+    <input type="file" id="avatar-file" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none">
+  </div>
+
+  <div class="card">
+    <label>用户名（不可修改）</label>
+    <input id="panel-username" disabled>
+    <label>昵称</label>
+    <input id="panel-nickname" placeholder="请输入昵称">
+    <button class="primary" id="save-profile-btn">保存修改</button>
+  </div>
+
+  <div class="card">
+    <h3>修改密码</h3>
+    <label>原密码</label>
+    <div class="pwd-wrap">
+      <input id="panel-old-pwd" type="password" placeholder="原密码" autocomplete="new-password">
+      <button type="button" class="pwd-eye" data-target="panel-old-pwd" title="显示/隐藏密码">&#128065;</button>
+    </div>
+    <label>新密码</label>
+    <div class="pwd-wrap">
+      <input id="panel-new-pwd" type="password" placeholder="新密码（至少 6 位）" autocomplete="new-password">
+      <button type="button" class="pwd-eye" data-target="panel-new-pwd" title="显示/隐藏密码">&#128065;</button>
+    </div>
+    <label>确认新密码</label>
+    <div class="pwd-wrap">
+      <input id="panel-confirm-pwd" type="password" placeholder="确认新密码" autocomplete="new-password">
+      <button type="button" class="pwd-eye" data-target="panel-confirm-pwd" title="显示/隐藏密码">&#128065;</button>
+    </div>
+    <button class="primary" id="change-pwd-btn">修改密码</button>
+  </div>
+
+  <button class="danger" id="panel-logout-btn">退出登录</button>
+</main>
+
+<div id="pwd-done-mask" class="overlay">
+  <div class="confirm-card">
+    <h2>密码已修改</h2>
+    <p>你的登录密码已更改，当前登录已退出，请重新登录。</p>
+    <div class="row">
+      <button class="primary" id="pwd-done-btn">去登录</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var token = localStorage.getItem("token") || "";
+var userInfo = null;
+
+function $(id) { return document.getElementById(id); }
+
+function toast(msg) {
+  var t = $("toast");
+  t.textContent = msg;
+  t.style.display = "block";
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(function () { t.style.display = "none"; }, 2200);
+}
+
+function api(path, options) {
+  options = options || {};
+  options.headers = options.headers || {};
+  options.headers["Content-Type"] = "application/json";
+  if (token) { options.headers["Authorization"] = token; }
+  return fetch(path, options).then(function (resp) {
+    return resp.json().catch(function () { return { code: -1, message: "响应解析失败" }; });
+  });
+}
+
+function initialChar(u) {
+  return ((u.nickname || u.username || "喵").trim()[0] || "喵").toUpperCase();
+}
+
+function renderAvatar(u) {
+  u = u || {};
+  var img = $("panel-avatar-img"), fb = $("panel-avatar-fallback");
+  if (u.avatar) {
+    img.src = u.avatar;
+    img.style.display = "block";
+    fb.style.display = "none";
+  } else {
+    img.style.display = "none";
+    img.removeAttribute("src");
+    fb.textContent = initialChar(u);
+    fb.style.display = "flex";
+  }
+}
+
+$("panel-avatar-img").addEventListener("error", function () {
+  $("panel-avatar-img").style.display = "none";
+  var fb = $("panel-avatar-fallback");
+  fb.textContent = initialChar(userInfo || {});
+  fb.style.display = "flex";
+});
+
+$("back-btn").addEventListener("click", function () { location.href = "/"; });
+
+// 未登录直接回主页
+if (!token) { location.href = "/"; }
+
+// 加载用户信息
+api("/api/user/info").then(function (resp) {
+  if (resp.code !== 0) {
+    if (resp.code === 401) {
+      localStorage.removeItem("token");
+      location.href = "/";
+      return;
+    }
+    toast(resp.message);
+    return;
+  }
+  userInfo = resp.data;
+  $("panel-username").value = userInfo.username || "";
+  $("panel-nickname").value = userInfo.nickname || "";
+  renderAvatar(userInfo);
+});
+
+// 更换头像
+$("upload-avatar-btn").addEventListener("click", function () { $("avatar-file").click(); });
+
+$("avatar-file").addEventListener("change", async function () {
+  var file = this.files && this.files[0];
+  this.value = "";
+  if (!file) { return; }
+  if (!/^image\/(png|jpe?g|gif|webp)$/i.test(file.type)) { toast("仅支持 jpg/png/gif/webp 图片"); return; }
+  if (file.size > 5 * 1024 * 1024) { toast("图片不能超过 5MB"); return; }
+  var fd = new FormData();
+  fd.append("file", file);
+  try {
+    var resp = await fetch("/api/user/avatar", {
+      method: "POST",
+      headers: { "Authorization": token },
+      body: fd
+    });
+    var json = await resp.json();
+    if (json.code !== 0) { toast(json.message); return; }
+    userInfo = json.data;
+    renderAvatar(userInfo);
+    toast("头像已更新");
+  } catch (e) {
+    toast("上传失败：" + e.message);
+  }
+});
+
+// 保存昵称
+$("save-profile-btn").addEventListener("click", async function () {
+  var nickname = $("panel-nickname").value.trim();
+  var resp = await api("/api/user/update", {
+    method: "PUT",
+    body: JSON.stringify({ nickname: nickname })
+  });
+  if (resp.code !== 0) { toast(resp.message); return; }
+  userInfo = resp.data;
+  $("panel-nickname").value = resp.data.nickname || "";
+  toast("保存成功");
+});
+
+// 修改密码
+// 密码显示/隐藏切换
+document.querySelectorAll(".pwd-eye").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var input = document.getElementById(btn.getAttribute("data-target"));
+    if (!input) { return; }
+    var show = input.type === "password";
+    input.type = show ? "text" : "password";
+    btn.innerHTML = show ? "&#128064;" : "&#128065;";
+  });
+});
+
+// 阻止浏览器自动填充原密码框
+var oldPwdEl = $("panel-old-pwd");
+if (oldPwdEl) {
+  oldPwdEl.setAttribute("readonly", "readonly");
+  oldPwdEl.addEventListener("focus", function () { oldPwdEl.removeAttribute("readonly"); });
+}
+
+$("change-pwd-btn").addEventListener("click", async function () {
+  var oldPwd = $("panel-old-pwd").value;
+  var newPwd = $("panel-new-pwd").value;
+  var confirmPwd = $("panel-confirm-pwd").value;
+  if (!oldPwd || !newPwd) { toast("请填写原密码和新密码"); return; }
+  if (newPwd.length < 6) { toast("新密码至少 6 位"); return; }
+  if (newPwd !== confirmPwd) { toast("两次输入的新密码不一致"); return; }
+  var resp = await api("/api/user/password", {
+    method: "PUT",
+    body: JSON.stringify({ old_password: oldPwd, new_password: newPwd })
+  });
+  if (resp.code !== 0) { toast(resp.message); return; }
+  $("panel-old-pwd").value = "";
+  $("panel-new-pwd").value = "";
+  $("panel-confirm-pwd").value = "";
+  // 修改密码成功：退出当前登录，弹窗提示重新登录
+  await api("/api/user/logout", { method: "POST" }).catch(function () {});
+  localStorage.removeItem("token");
+  localStorage.removeItem("userInfo");
+  sessionStorage.clear();
+  $("pwd-done-mask").style.display = "flex";
+});
+
+// 密码已修改，去重新登录
+$("pwd-done-btn").addEventListener("click", function () {
+  location.href = "/?login=1";
+});
+
+// 退出登录
+$("panel-logout-btn").addEventListener("click", async function () {
+  await api("/api/user/logout", { method: "POST" });
+  localStorage.removeItem("token");
+  localStorage.removeItem("userInfo");
+  location.href = "/";
+});
+</script>
+</body>
+</html>
