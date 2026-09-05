@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>商家后台</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="admin">
+
+  <!-- 登录界面 -->
+  <div class="login-wrap" id="login-wrap">
+    <div class="login-card">
+      <h1>商家后台</h1>
+      <p class="sub">请输入后台管理密码</p>
+      <div class="field">
+        <label>管理密码</label>
+        <input type="password" id="login-pass" maxlength="50" placeholder="请输入密码" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" style="width:100%" id="login-btn">登 录</button>
+      <p class="text-center muted mt-16"><a href="index.html">← 返回前台</a></p>
+    </div>
+  </div>
+
+  <!-- 管理界面 -->
+  <div class="admin-wrap" id="admin-wrap" style="display:none">
+    <div class="admin-top">
+      <h1>商家后台 · 品类与预约管理</h1>
+      <div style="display:flex;gap:8px">
+        <a class="btn btn-ghost btn-sm" href="index.html" target="_blank">查看前台</a>
+        <button class="btn btn-danger btn-sm" id="logout-btn">退出登录</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button data-tab="category" class="active">品类管理</button>
+      <button data-tab="book">预约管理</button>
+      <button data-tab="setting">基础设置</button>
+      <button data-tab="carousel">轮播图</button>
+    </div>
+
+    <!-- 品类管理 -->
+    <div class="panel active" id="panel-category">
+      <div class="card-panel">
+        <h3>回收品类</h3>
+        <p class="muted" style="margin-bottom:12px;font-size:13px">可为每个品类上传一张图片作为前台卡片背景（支持 jpg/png/gif/webp，≤5MB）。</p>
+        <div class="form-row" style="margin-bottom:10px">
+          <input type="text" id="recycle-add-name" maxlength="50" placeholder="输入要新增的回收品类名称">
+          <button class="btn btn-primary btn-sm" data-add-type="1">新增回收品类</button>
+        </div>
+        <div id="recycle-list"></div>
+      </div>
+      <div class="card-panel">
+        <h3>售卖品类</h3>
+        <p class="muted" style="margin-bottom:12px;font-size:13px">可为每个品类上传一张图片作为前台卡片背景（支持 jpg/png/gif/webp，≤5MB）。</p>
+        <div class="form-row" style="margin-bottom:10px">
+          <input type="text" id="sell-add-name" maxlength="50" placeholder="输入要新增的售卖品类名称">
+          <button class="btn btn-primary btn-sm" data-add-type="2">新增售卖品类</button>
+        </div>
+        <div id="sell-list"></div>
+      </div>
+    </div>
+
+    <!-- 预约管理 -->
+    <div class="panel" id="panel-book">
+      <div class="card-panel">
+        <h3>客户预约记录</h3>
+        <div class="toolbar">
+          <label>筛选：</label>
+          <select id="book-filter">
+            <option value="all">全部</option>
+            <option value="0">未处理</option>
+            <option value="1">已处理</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" id="book-refresh">刷新</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data">
+            <thead>
+              <tr>
+                <th>ID</th><th>姓名</th><th>电话</th><th>类型</th><th>需求描述</th><th>提交时间</th><th>状态</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="book-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 基础设置 -->
+    <div class="panel" id="panel-setting">
+      <div class="card-panel">
+        <h3>门店基础信息</h3>
+        <div class="grid-2">
+          <div class="field"><label>店铺名称</label><input type="text" id="s-shop_name" maxlength="50"></div>
+          <div class="field"><label>业务标语</label><input type="text" id="s-slogan" maxlength="100"></div>
+        </div>
+        <div class="field"><label>首页介绍文案</label><textarea id="s-home_intro" maxlength="500"></textarea></div>
+        <div class="field"><label>回收页介绍文案</label><textarea id="s-recycle_intro" maxlength="300"></textarea></div>
+        <div class="field"><label>售卖页介绍文案</label><textarea id="s-sell_intro" maxlength="300"></textarea></div>
+        <div class="field"><label>门店介绍文案</label><textarea id="s-about_intro" maxlength="500"></textarea></div>
+        <div class="field"><label>服务优势（每行一项）</label><textarea id="s-service_advantages" maxlength="300"></textarea></div>
+        <div class="field"><label>上门服务说明</label><textarea id="s-door_service" maxlength="300"></textarea></div>
+        <div class="field"><label>服务流程（每行一步）</label><textarea id="s-service_flow" maxlength="300"></textarea></div>
+        <div class="grid-2">
+          <div class="field"><label>门店地址</label><input type="text" id="s-address" maxlength="200"></div>
+          <div class="field"><label>联系电话</label><input type="text" id="s-phone" maxlength="50"></div>
+        </div>
+        <div class="field"><label>营业时间</label><input type="text" id="s-work_time" maxlength="100"></div>
+        <button class="btn btn-primary" id="settings-save">保存设置</button>
+      </div>
+
+      <div class="card-panel">
+        <h3>修改后台密码</h3>
+        <div class="grid-2">
+          <div class="field"><label>原密码</label><input type="password" id="p-old" maxlength="50"></div>
+          <div class="field"><label>新密码（至少 4 位）</label><input type="password" id="p-new" maxlength="50"></div>
+        </div>
+        <div class="field"><label>确认新密码</label><input type="password" id="p-confirm" maxlength="50"></div>
+        <button class="btn btn-primary" id="password-save">修改密码</button>
+      </div>
+    </div>
+
+    <!-- 轮播图管理 -->
+    <div class="panel" id="panel-carousel">
+      <div class="card-panel">
+        <h3>首页 / 各页轮播图</h3>
+        <p class="muted" style="margin-bottom:14px;font-size:13px">
+          上传图片可替换首页、回收、售卖、门店介绍页顶部的自动轮播图（最多 10 张，jpg/png/gif/webp ≤5MB）；
+          可直接修改下方每张图的「小标签 / 标题 / 描述」文字（未上传图片时显示系统默认图，也可直接改文字）；点「保存文字」前台立即生效；「上传图片」可替换图片；「恢复默认」回到系统自带图片与文字。
+        </p>
+        <div class="toolbar">
+          <button class="btn btn-primary btn-sm" id="carousel-add">上传图片</button>
+          <button class="btn btn-primary btn-sm" id="carousel-save">保存文字</button>
+          <button class="btn btn-ghost btn-sm" id="carousel-reset">恢复默认</button>
+          <input type="file" id="carousel-input" accept="image/*" multiple style="display:none">
+        </div>
+        <div id="carousel-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="common.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var TOKEN_KEY = 'fs_admin_token';
+      var token = localStorage.getItem(TOKEN_KEY) || '';
+      var carouselImages = [];
+
+      function authHeaders() {
+        return token ? { 'Authorization': 'Bearer ' + token } : {};
+      }
+
+      function showLogin() {
+        document.getElementById('login-wrap').style.display = 'flex';
+        document.getElementById('admin-wrap').style.display = 'none';
+      }
+      function showApp() {
+        document.getElementById('login-wrap').style.display = 'none';
+        document.getElementById('admin-wrap').style.display = 'block';
+      }
+
+      function isUnauthorized(err) { return err && err.status === 401; }
+      function handleErr(err) {
+        if (isUnauthorized(err)) { FS.toast('登录已过期，请重新登录', false); logoutLocal(); }
+        else FS.toast(err.message, false);
+      }
+      function logoutLocal() {
+        token = '';
+        localStorage.removeItem(TOKEN_KEY);
+        showLogin();
+      }
+
+      /* ---------- 图片上传 ---------- */
+      async function uploadFile(file) {
+        var fd = new FormData();
+        fd.append('file', file);
+        var res = await fetch('/api/admin/upload', { method: 'POST', headers: authHeaders(), body: fd });
+        var json = null;
+        try { json = await res.json(); } catch (e) { /* ignore */ }
+        if (!res.ok) {
+          var detail = json && json.detail;
+          throw new Error(detail ? (typeof detail === 'string' ? detail : JSON.stringify(detail)) : ('上传失败（' + res.status + '）'));
+        }
+        return json.data.url;
+      }
+
+      /* ---------- 登录 / 退出 ---------- */
+      document.getElementById('login-btn').addEventListener('click', doLogin);
+      document.getElementById('login-pass').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') doLogin();
+      });
+
+      async function doLogin() {
+        var pass = document.getElementById('login-pass').value;
+        if (!pass) { FS.toast('请输入管理密码', false); return; }
+        var btn = document.getElementById('login-btn');
+        btn.disabled = true;
+        try {
+          var json = await FS.api('/api/admin/login', { method: 'POST', body: JSON.stringify({ password: pass }) });
+          token = json.data.token;
+          localStorage.setItem(TOKEN_KEY, token);
+          document.getElementById('login-pass').value = '';
+          FS.toast('登录成功');
+          showApp();
+          loadAll();
+        } catch (err) {
+          FS.toast(err.message, false);
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      document.getElementById('logout-btn').addEventListener('click', function () {
+        logoutLocal();
+      });
+
+      /* ---------- 标签页 ---------- */
+      document.querySelectorAll('.tabs button').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.tabs button').forEach(function (b) { b.classList.toggle('active', b === btn); });
+          document.querySelectorAll('.panel').forEach(function (p) { p.classList.toggle('active', p.id === 'panel-' + btn.getAttribute('data-tab')); });
+        });
+      });
+
+      /* ---------- 数据加载 ---------- */
+      async function loadAll() {
+        try {
+          await Promise.all([loadCategories(), loadBooks(), loadSettings(), loadCarouselImages()]);
+        } catch (err) {
+          if (isUnauthorized(err)) { FS.toast('登录已过期，请重新登录', false); logoutLocal(); }
+          else FS.toast(err.message, false);
+        }
+      }
+
+      /* ---------- 品类管理 ---------- */
+      async function loadCategories() {
+        var json = await FS.api('/api/admin/categories', { headers: authHeaders() });
+        renderCategories(json.data || []);
+      }
+
+      function renderCategories(list) {
+        renderCatList('recycle-list', list.filter(function (c) { return c.type === 1; }));
+        renderCatList('sell-list', list.filter(function (c) { return c.type === 2; }));
+      }
+
+      function renderCatList(elId, items) {
+        var el = document.getElementById(elId);
+        if (!items.length) {
+          el.innerHTML = '<p class="muted">暂无品类，请新增</p>';
+          return;
+        }
+        el.innerHTML = items.map(function (c) {
+          var visible = c.status === 1;
+          var thumb = c.image
+            ? '<img class="cat-thumb" src="' + c.image + '" alt="品类图">'
+            : '<div class="cat-thumb cat-thumb-empty">无图</div>';
+          return '<div class="cat-row" data-id="' + c.id + '">' +
+            thumb +
+            '<input class="name-input" type="text" maxlength="50" value="' + FS.escapeHtml(c.name) + '">' +
+            '<input class="sort-input" type="number" value="' + c.sort + '" title="排序权重，越小越靠前">' +
+            '<button class="btn btn-sm ' + (visible ? 'btn-success' : 'btn-ghost') + '" data-act="toggle">' + (visible ? '显示中' : '已隐藏') + '</button>' +
+            '<button class="btn btn-sm btn-ghost" data-act="img">' + (c.image ? '换图' : '上传图') + '</button>' +
+            (c.image ? '<button class="btn btn-sm btn-ghost" data-act="img-del">移除图</button>' : '') +
+            '<button class="btn btn-sm btn-primary" data-act="save">保存</button>' +
+            '<button class="btn btn-sm btn-danger" data-act="del">删除</button>' +
+            '<input type="file" class="img-input" accept="image/*" style="display:none">' +
+            '</div>';
+        }).join('');
+      }
+
+      function readRowPayload(row) {
+        var name = row.querySelector('.name-input').value.trim();
+        var sort = parseInt(row.querySelector('.sort-input').value || '0', 10) || 0;
+        var type = row.closest('#recycle-list') ? 1 : 2;
+        var status = row.querySelector('button[data-act=toggle]').textContent.trim() === '显示中' ? 1 : 0;
+        return { name: name, type: type, sort: sort, status: status, image: '' };
+      }
+
+      document.querySelectorAll('[data-add-type]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          var type = parseInt(btn.getAttribute('data-add-type'), 10);
+          var input = document.getElementById(type === 1 ? 'recycle-add-name' : 'sell-add-name');
+          var name = input.value.trim();
+          if (!name) { FS.toast('请输入品类名称', false); return; }
+          try {
+            await FS.api('/api/admin/categories', {
+              method: 'POST', headers: authHeaders(),
+              body: JSON.stringify({ name: name, type: type, sort: 0, status: 1, image: '' })
+            });
+            input.value = '';
+            FS.toast('新增成功');
+            await loadCategories();
+          } catch (err) { handleErr(err); }
+        });
+      });
+
+      document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.cat-row button[data-act]');
+        if (!btn) return;
+        var row = btn.closest('.cat-row');
+        var id = parseInt(row.getAttribute('data-id'), 10);
+        var act = btn.getAttribute('data-act');
+
+        if (act === 'img') {
+          var fi = row.querySelector('.img-input');
+          if (fi) fi.click();
+          return;
+        }
+        if (act === 'img-del') {
+          var payloadDel = readRowPayload(row);
+          payloadDel.image = '';
+          FS.api('/api/admin/categories/' + id, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(payloadDel) })
+            .then(function (res) { FS.toast(res.message || '已移除图片'); return loadCategories(); })
+            .catch(handleErr);
+          return;
+        }
+        if (act === 'del' && !confirm('确定删除该品类？')) return;
+
+        var payload = readRowPayload(row);
+        if (act === 'toggle') payload.status = payload.status === 1 ? 0 : 1;
+        var method = act === 'del' ? 'DELETE' : 'PUT';
+        FS.api('/api/admin/categories/' + id, {
+          method: method, headers: authHeaders(),
+          body: act === 'del' ? undefined : JSON.stringify(payload)
+        }).then(function (res) {
+          FS.toast(res.message || '操作成功');
+          return loadCategories();
+        }).catch(handleErr);
+      });
+
+      // 品类图片上传（change 委托）
+      document.addEventListener('change', async function (e) {
+        var input = e.target;
+        if (!input.classList.contains('img-input')) return;
+        var row = input.closest('.cat-row');
+        if (!row || !input.files || !input.files[0]) return;
+        var file = input.files[0];
+        input.disabled = true;
+        try {
+          var url = await uploadFile(file);
+          var id = row.getAttribute('data-id');
+          var payload = readRowPayload(row);
+          payload.image = url;
+          var res = await FS.api('/api/admin/categories/' + id, {
+            method: 'PUT', headers: authHeaders(), body: JSON.stringify(payload)
+          });
+          FS.toast(res.message || '图片已更新');
+          await loadCategories();
+        } catch (err) { handleErr(err); }
+        finally { input.disabled = false; input.value = ''; }
+      });
+
+      /* ---------- 预约管理 ---------- */
+      var allBooks = [];
+      async function loadBooks() {
+        var json = await FS.api('/api/admin/books', { headers: authHeaders() });
+        allBooks = json.data || [];
+        renderBooks();
+      }
+
+      function renderBooks() {
+        var filter = document.getElementById('book-filter').value;
+        var list = filter === 'all' ? allBooks : allBooks.filter(function (b) { return String(b.status) === filter; });
+        var tbody = document.getElementById('book-tbody');
+        if (!list.length) {
+          tbody.innerHTML = '<tr><td colspan="8" class="text-center muted">暂无预约记录</td></tr>';
+          return;
+        }
+        tbody.innerHTML = list.map(function (b) {
+          var typeText = b.book_type === 1 ? '回收预约' : '购买咨询';
+          var statusBadge = b.status === 1
+            ? '<span class="badge badge-done">已处理</span>'
+            : '<span class="badge badge-pending">未处理</span>';
+          return '<tr>' +
+            '<td>' + b.id + '</td>' +
+            '<td>' + FS.escapeHtml(b.name) + '</td>' +
+            '<td>' + FS.escapeHtml(b.phone) + '</td>' +
+            '<td>' + typeText + '</td>' +
+            '<td>' + FS.escapeHtml(b.need_content || '-') + '</td>' +
+            '<td>' + FS.escapeHtml(b.create_time) + '</td>' +
+            '<td>' + statusBadge + '</td>' +
+            '<td><div class="row-actions">' +
+              '<button class="btn btn-sm ' + (b.status === 1 ? 'btn-ghost' : 'btn-success') + '" data-book-id="' + b.id + '" data-book-status="' + (b.status === 1 ? 0 : 1) + '">' + (b.status === 1 ? '标记未处理' : '标记已处理') + '</button>' +
+              '<button class="btn btn-sm btn-danger" data-book-id="' + b.id + '" data-book-del="1">删除</button>' +
+            '</div></td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      document.getElementById('book-filter').addEventListener('change', renderBooks);
+      document.getElementById('book-refresh').addEventListener('click', function () {
+        loadBooks().catch(handleErr);
+      });
+
+      document.getElementById('book-tbody').addEventListener('click', function (e) {
+        var btn = e.target.closest('button[data-book-id]');
+        if (!btn) return;
+        var id = btn.getAttribute('data-book-id');
+        if (btn.hasAttribute('data-book-del')) {
+          if (!confirm('确定删除该预约记录？')) return;
+          FS.api('/api/admin/books/' + id, { method: 'DELETE', headers: authHeaders() })
+            .then(function (res) { FS.toast(res.message || '删除成功'); return loadBooks(); })
+            .catch(handleErr);
+        } else {
+          var status = parseInt(btn.getAttribute('data-book-status'), 10);
+          FS.api('/api/admin/books/' + id + '/status', {
+            method: 'PATCH', headers: authHeaders(),
+            body: JSON.stringify({ status: status })
+          }).then(function (res) { FS.toast(res.message || '状态已更新'); return loadBooks(); })
+            .catch(handleErr);
+        }
+      });
+
+      /* ---------- 基础设置 ---------- */
+      var SETTING_FIELDS = ['shop_name', 'slogan', 'home_intro', 'recycle_intro', 'sell_intro', 'about_intro', 'service_advantages', 'door_service', 'service_flow', 'address', 'phone', 'work_time'];
+
+      async function loadSettings() {
+        var json = await FS.api('/api/admin/settings', { headers: authHeaders() });
+        var data = json.data || {};
+        SETTING_FIELDS.forEach(function (key) {
+          var el = document.getElementById('s-' + key);
+          if (el && data[key] != null) el.value = data[key];
+        });
+      }
+
+      document.getElementById('settings-save').addEventListener('click', async function () {
+        var payload = {};
+        SETTING_FIELDS.forEach(function (key) {
+          var el = document.getElementById('s-' + key);
+          if (el) payload[key] = el.value.trim();
+        });
+        var btn = document.getElementById('settings-save');
+        btn.disabled = true;
+        try {
+          var res = await FS.api('/api/admin/settings', {
+            method: 'PUT', headers: authHeaders(), body: JSON.stringify({ settings: payload })
+          });
+          FS.toast(res.message || '保存成功');
+        } catch (err) { handleErr(err); }
+        finally { btn.disabled = false; }
+      });
+
+      document.getElementById('password-save').addEventListener('click', async function () {
+        var oldP = document.getElementById('p-old').value;
+        var newP = document.getElementById('p-new').value;
+        var confirmP = document.getElementById('p-confirm').value;
+        if (!oldP || !newP) { FS.toast('请填写原密码和新密码', false); return; }
+        if (newP.length < 4) { FS.toast('新密码至少 4 位', false); return; }
+        if (newP !== confirmP) { FS.toast('两次输入的新密码不一致', false); return; }
+        var btn = document.getElementById('password-save');
+        btn.disabled = true;
+        try {
+          var res = await FS.api('/api/admin/password', {
+            method: 'PUT', headers: authHeaders(),
+            body: JSON.stringify({ old_password: oldP, new_password: newP })
+          });
+          FS.toast(res.message || '密码修改成功');
+          document.getElementById('p-old').value = '';
+          document.getElementById('p-new').value = '';
+          document.getElementById('p-confirm').value = '';
+        } catch (err) { handleErr(err); }
+        finally { btn.disabled = false; }
+      });
+
+      /* ---------- 轮播图管理 ---------- */
+      var carouselImages = [];
+      var carouselCaptions = [];
+
+      async function loadCarouselImages() {
+        var json = await FS.api('/api/admin/settings', { headers: authHeaders() });
+        var data = json.data || {};
+        try { carouselImages = JSON.parse(data.carousel_images || '[]'); } catch (e) { carouselImages = []; }
+        try { carouselCaptions = JSON.parse(data.carousel_captions || '[]'); } catch (e) { carouselCaptions = []; }
+        if (!Array.isArray(carouselImages)) carouselImages = [];
+        if (!Array.isArray(carouselCaptions)) carouselCaptions = [];
+        renderCarouselList();
+      }
+
+      function renderCarouselList() {
+        var el = document.getElementById('carousel-list');
+        var defaults = (window.FS && FS.homeSlides) || [];
+        var isCustom = carouselImages.length > 0;
+        var images = isCustom ? carouselImages : defaults.map(function (s) { return s.img; });
+        if (!images.length) {
+          el.innerHTML = '<p class="muted">暂无轮播图。</p>';
+          return;
+        }
+        var html = '';
+        for (var i = 0; i < images.length; i++) {
+          var cap = carouselCaptions[i] || defaults[i] || {};
+          var kicker = cap.kicker != null ? cap.kicker : '';
+          var title = cap.title || '';
+          var text = cap.text || '';
+          html += '<div class="carousel-item" data-i="' + i + '">' +
+            '<img class="carousel-item-img" src="' + images[i] + '" alt="第 ' + (i + 1) + ' 张">' +
+            '<div class="carousel-item-fields">' +
+              '<div class="field"><label>小标签（第 ' + (i + 1) + ' 张）</label><input type="text" class="cap-kicker" maxlength="20" value="' + FS.escapeHtml(kicker) + '" placeholder="如：上门回收 · 实惠售卖"></div>' +
+              '<div class="field"><label>标题</label><input type="text" class="cap-title" maxlength="50" value="' + FS.escapeHtml(title) + '" placeholder="轮播图主标题"></div>' +
+              '<div class="field"><label>描述</label><textarea class="cap-text" maxlength="200" placeholder="轮播图副文案">' + FS.escapeHtml(text) + '</textarea></div>' +
+            '</div>' +
+            '<div class="carousel-item-ops">' + (isCustom ? '<button class="btn btn-sm btn-danger carousel-del">删除</button>' : '') + '</div>' +
+            '</div>';
+        }
+        el.innerHTML = html;
+      }
+
+      function collectCaptions() {
+        var list = [];
+        var items = document.querySelectorAll('#carousel-list .carousel-item');
+        for (var k = 0; k < items.length; k++) {
+          list.push({
+            kicker: items[k].querySelector('.cap-kicker').value.trim(),
+            title: items[k].querySelector('.cap-title').value.trim(),
+            text: items[k].querySelector('.cap-text').value.trim()
+          });
+        }
+        return list;
+      }
+
+      async function saveCarousel() {
+        await FS.api('/api/admin/settings', {
+          method: 'PUT', headers: authHeaders(),
+          body: JSON.stringify({ settings: {
+            carousel_images: JSON.stringify(carouselImages),
+            carousel_captions: JSON.stringify(carouselCaptions)
+          } })
+        });
+      }
+
+      document.getElementById('carousel-add').addEventListener('click', function () {
+        document.getElementById('carousel-input').click();
+      });
+
+      document.getElementById('carousel-input').addEventListener('change', async function () {
+        var files = Array.prototype.slice.call(this.files || []);
+        this.value = '';
+        if (!files.length) return;
+        var btn = document.getElementById('carousel-add');
+        btn.disabled = true;
+        try {
+          for (var i = 0; i < files.length; i++) {
+            var url = await uploadFile(files[i]);
+            carouselImages.push(url);
+            carouselCaptions.push({ kicker: '', title: '', text: '' });
+            if (carouselImages.length > 10) {
+              carouselImages = carouselImages.slice(-10);
+              carouselCaptions = carouselCaptions.slice(-10);
+            }
+          }
+          await saveCarousel();
+          FS.toast('轮播图已更新');
+          renderCarouselList();
+        } catch (err) { handleErr(err); }
+        finally { btn.disabled = false; }
+      });
+
+      document.getElementById('carousel-list').addEventListener('click', async function (e) {
+        var btn = e.target.closest('.carousel-del');
+        if (!btn) return;
+        var item = btn.closest('.carousel-item');
+        var i = parseInt(item.getAttribute('data-i'), 10);
+        carouselImages.splice(i, 1);
+        carouselCaptions.splice(i, 1);
+        try {
+          await saveCarousel();
+          FS.toast('已删除');
+          renderCarouselList();
+        } catch (err) { handleErr(err); }
+      });
+
+      document.getElementById('carousel-save').addEventListener('click', async function () {
+        carouselCaptions = collectCaptions();
+        var btn = document.getElementById('carousel-save');
+        btn.disabled = true;
+        try {
+          await saveCarousel();
+          FS.toast('文字已保存，前台轮播已更新');
+        } catch (err) { handleErr(err); }
+        finally { btn.disabled = false; }
+      });
+
+      document.getElementById('carousel-reset').addEventListener('click', async function () {
+        if (!confirm('确定恢复为系统默认轮播图与文字？')) return;
+        carouselImages = [];
+        carouselCaptions = [];
+        try {
+          await saveCarousel();
+          FS.toast('已恢复默认');
+          renderCarouselList();
+        } catch (err) { handleErr(err); }
+      });
+
+      /* ---------- 启动 ---------- */
+      (function init() {
+        if (!token) { showLogin(); return; }
+        showApp();
+        loadAll();
+      })();
+    })();
+  </script>
+</body>
+</html>

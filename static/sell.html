@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>售卖品类</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="sell" data-title="售卖品类">
+
+  <div class="container" style="margin-top:24px">
+    <div class="carousel" data-carousel></div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">售卖业务</span>
+        <h2>本店主营售卖</h2>
+        <p data-site="sell_intro">以下品类为门店主营范围，更多好物欢迎到店或来电咨询</p>
+      </div>
+      <div class="card-grid" id="sell-grid"></div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <div class="cta-band">
+        <h2>想淘实惠好物？</h2>
+        <p>品类丰富、成色好、性价比高，欢迎预约看货</p>
+        <div class="phone" data-site="phone">138-0000-0000</div>
+        <button type="button" class="btn btn-white js-book-open" data-book-type="2">预约看货</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h4 data-site="shop_name">乐享二手家具回收·售卖</h4>
+          <p data-site="slogan">上门回收 · 实惠售卖</p>
+        </div>
+        <div>
+          <h4>门店地址</h4>
+          <p data-site="address">幸福路 88 号</p>
+        </div>
+        <div>
+          <h4>联系方式</h4>
+          <p data-site="phone">138-0000-0000</p>
+        </div>
+        <div>
+          <h4>营业时间</h4>
+          <p data-site="work_time">每天 09:00 - 21:00</p>
+        </div>
+      </div>
+      <div class="copy">© 二手家具回收售卖展示系统 · 仅供业务展示</div>
+    </div>
+  </footer>
+
+  <script src="common.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var el = document.getElementById('sell-grid');
+      FS.api('/api/categories?type=2').then(function (json) {
+        var items = json.data || [];
+        if (!items.length) {
+          el.innerHTML = '<div class="empty">暂无展示内容，可联系门店咨询</div>';
+          return;
+        }
+        el.innerHTML = items.map(function (c) { return FS.categoryCard(c, '🛒', 'tag-sell', '在售'); }).join('');
+      }).catch(function () {
+        el.innerHTML = '<div class="empty">加载失败，请稍后重试</div>';
+      });
+    });
+  </script>
+</body>
+</html>

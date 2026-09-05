@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>业务总览</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="home" data-title="业务总览">
+
+  <div class="container" style="margin-top:24px">
+    <div class="carousel" data-carousel></div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">为什么选择我们</span>
+        <h2>门店服务优势</h2>
+        <p>用心服务每一位顾客，让买卖都放心</p>
+      </div>
+      <ul class="adv-grid" id="service-advantages-list"></ul>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">回收业务</span>
+        <h2>热门回收品类</h2>
+        <p data-site="recycle_intro">支持上门回收各类家具、家居用品及配套家电</p>
+      </div>
+      <div class="card-grid" id="recycle-grid"></div>
+      <div class="link-more"><a href="recycle.html">查看全部回收品类 →</a></div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">售卖业务</span>
+        <h2>热门售卖品类</h2>
+        <p data-site="sell_intro">在售二手家具品类丰富、性价比高</p>
+      </div>
+      <div class="card-grid" id="sell-grid"></div>
+      <div class="link-more"><a href="sell.html">查看全部售卖品类 →</a></div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <div class="cta-band">
+        <h2>有闲置家具？想淘实惠好物？</h2>
+        <p>在线预约，专人上门看货，回收结算快速透明</p>
+        <div class="phone" data-site="phone">138-0000-0000</div>
+        <button type="button" class="btn btn-white js-book-open" data-book-type="1">立即预约</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h4 data-site="shop_name">乐享二手家具回收·售卖</h4>
+          <p data-site="slogan">上门回收 · 实惠售卖</p>
+        </div>
+        <div>
+          <h4>门店地址</h4>
+          <p data-site="address">幸福路 88 号</p>
+        </div>
+        <div>
+          <h4>联系方式</h4>
+          <p data-site="phone">138-0000-0000</p>
+        </div>
+        <div>
+          <h4>营业时间</h4>
+          <p data-site="work_time">每天 09:00 - 21:00</p>
+        </div>
+      </div>
+      <div class="copy">© 二手家具回收售卖展示系统 · 仅供业务展示</div>
+    </div>
+  </footer>
+
+  <script src="common.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      function loadCards(url, elId, tagClass, tagText, icon, limit) {
+        var el = document.getElementById(elId);
+        if (!el) return;
+        FS.api(url).then(function (json) {
+          var items = (json.data || []).slice(0, limit);
+          if (!items.length) {
+            el.innerHTML = '<div class="empty">暂无展示内容，可联系门店咨询</div>';
+            return;
+          }
+          el.innerHTML = items.map(function (c) { return FS.categoryCard(c, icon, tagClass, tagText); }).join('');
+        }).catch(function () {
+          el.innerHTML = '<div class="empty">加载失败，请稍后重试</div>';
+        });
+      }
+      loadCards('/api/categories?type=1', 'recycle-grid', 'tag-recycle', '可回收', '♻', 6);
+      loadCards('/api/categories?type=2', 'sell-grid', 'tag-sell', '在售', '🛒', 6);
+    });
+  </script>
+</body>
+</html>
