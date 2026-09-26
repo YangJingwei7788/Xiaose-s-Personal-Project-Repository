@@ -1,4 +1,4 @@
-# 萧瑟喵AI工作台（codex+deepseek辅助开发）
+# 萧瑟喵AI工作台v1.0
 
 基于 **FastAPI + SQLAlchemy（异步）** 构建的轻量 AI 对话全栈应用，支持多用户、流式对话、会话角色设定、收藏与历史，并可自由接入多种大模型来源（公共 API / 本地大模型 / DeepSeek）。原生 HTML/CSS/JS 前端，已做移动端适配。
 
